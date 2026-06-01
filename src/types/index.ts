@@ -28,37 +28,27 @@ export interface CalendarEvent {
   status: 'pendiente' | 'realizado' | 'cancelado';
 }
 
-export interface EnglishSession {
+export interface FocusPlan {
   id: string;
+  name: string;
+  icon: string; // e.g. 'Dumbbell', 'Book', 'Languages', 'Target', 'Heart', 'Zap', 'BookOpen', 'Globe'
+  color: 'emerald' | 'indigo' | 'purple' | 'rose' | 'amber' | 'blue' | 'aqua';
+  target: number; // e.g. 5, 4, 20
+  unit: string; // e.g. 'horas', 'sesiones', 'km', 'páginas', 'minutos'
+  timeframeType: 'months' | 'date';
+  timeframeValue: string; // e.g. "3" (for 3 months) or "2026-12-31" (target date)
+  createdAt: string; // YYYY-MM-DD
+}
+
+export interface FocusPlanSession {
+  id: string;
+  planId: string;
   date: string; // YYYY-MM-DD
-  minutes: number;
-  practiceType: 'Listening' | 'Speaking' | 'Reading' | 'Writing' | 'Grammar' | 'Vocabulary' | 'Business English';
-  topic: string;
-  difficulty: 'Fácil' | 'Medio' | 'Difícil';
+  value: number; // e.g. 1.5, 1, 15
+  details: string; // topic, type, details
   notes: string;
 }
 
-export interface WorkoutSession {
-  id: string;
-  date: string; // YYYY-MM-DD
-  type: 'Pierna' | 'Brazos' | 'Hombros' | 'Espalda' | 'Pecho' | 'Core' | 'Full body';
-  duration: number; // minutes
-  intensity: 'Baja' | 'Media' | 'Alta';
-  exercises: string;
-  notes: string;
-  energyLevel: number; // 1-5
-}
-
-export interface RunningSession {
-  id: string;
-  date: string; // YYYY-MM-DD
-  distance: number; // km
-  time: string; // HH:MM:SS or MM:SS
-  pace: string; // min/km
-  type: 'Suave' | 'Fondo' | 'Series' | 'Tempo' | 'Recuperación';
-  sensations: string;
-  notes: string;
-}
 
 export interface Prospect {
   id: string;

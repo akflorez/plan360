@@ -44,10 +44,10 @@ export const Proyecto4M: React.FC = () => {
   // Calculations
   const stats = calculateCRMStats(prospects, transactions, settings.extraIncomeGoal);
 
-  const formatCOP = (num: number) => {
+  const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
-      currency: 'COP',
+      currency: settings.currency || 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(num);
@@ -160,22 +160,22 @@ export const Proyecto4M: React.FC = () => {
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-emerald-300 text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5 animate-pulse-soft" />
-                <span>Meta Proyecto $4M COP</span>
+                <span>Meta Proyecto & CRM</span>
               </div>
-              <h2 className="text-2xl font-black mt-1">Generar $4.000.000 COP adicionales al mes</h2>
+              <h2 className="text-2xl font-black mt-1">Generar {formatCurrency(settings.extraIncomeGoal)} adicionales al mes</h2>
             </div>
             <div className="bg-white/10 px-4 py-2.5 rounded-xl border border-white/10 backdrop-blur-sm text-right shrink-0">
               <span className="text-[10px] text-slate-400 font-bold block">BRECHA PARA LA META</span>
-              <span className="text-lg font-black text-emerald-300">{formatCOP(stats.gapToGoal)}</span>
+              <span className="text-lg font-black text-emerald-300">{formatCurrency(stats.gapToGoal)}</span>
             </div>
           </div>
 
           {/* Progress bar container */}
           <div className="space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10">
             <div className="flex justify-between items-center text-xs font-bold">
-              <span className="text-slate-300">Ingreso Extra Real Recibido</span>
-              <span className="text-emerald-400">{formatCOP(stats.extraIncomeReal)} / {formatCOP(settings.extraIncomeGoal)}</span>
-            </div>
+                <span className="text-slate-300">Ingreso Extra Real Recibido</span>
+                <span className="text-emerald-400">{formatCurrency(stats.extraIncomeReal)} / {formatCurrency(settings.extraIncomeGoal)}</span>
+              </div>
             
             {/* Progress Bar Component */}
             <div className="w-full bg-navy-950/60 h-3.5 rounded-full overflow-hidden border border-white/5 p-[2px]">
@@ -217,8 +217,8 @@ export const Proyecto4M: React.FC = () => {
         </div>
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center col-span-2 md:col-span-1">
           <p className="text-[10px] text-slate-400 font-bold uppercase">Ticket Promedio</p>
-          <h4 className="text-xs font-bold text-slate-800 mt-1.5 truncate" title={formatCOP(stats.averageValuePerClient)}>
-            {formatCOP(stats.averageValuePerClient)}
+          <h4 className="text-xs font-bold text-slate-800 mt-1.5 truncate" title={formatCurrency(stats.averageValuePerClient)}>
+            {formatCurrency(stats.averageValuePerClient)}
           </h4>
         </div>
       </div>
@@ -280,7 +280,7 @@ export const Proyecto4M: React.FC = () => {
                       </div>
 
                       <div className="flex justify-between items-center text-[10px] font-bold border-t border-slate-50 pt-2">
-                        <span className="text-emerald-600">{formatCOP(p.valueProposed)}</span>
+                        <span className="text-emerald-600">{formatCurrency(p.valueProposed)}</span>
                         
                         {/* Shifting Actions */}
                         <div className="flex gap-1">

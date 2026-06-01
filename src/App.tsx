@@ -6,8 +6,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Finanzas } from './pages/Finanzas';
 import { Calendario } from './pages/Calendario';
 import { Habitos } from './pages/Habitos';
-import { Ingles } from './pages/Ingles';
-import { GymRunning } from './pages/GymRunning';
+import { FocusPlans } from './pages/FocusPlans';
 import { Proyecto4M } from './pages/Proyecto4M';
 import { FinesDeSemana } from './pages/FinesDeSemana';
 import { Metas6Meses } from './pages/Metas6Meses';
@@ -51,10 +50,8 @@ function AppContent() {
         return <Calendario />;
       case 'habitos':
         return <Habitos />;
-      case 'ingles':
-        return <Ingles />;
-      case 'gym-running':
-        return <GymRunning />;
+      case 'focus-plans':
+        return <FocusPlans />;
       case 'proyecto-4m':
         return <Proyecto4M />;
       case 'weekend':

@@ -26,13 +26,13 @@ export const FinesDeSemana: React.FC = () => {
   const [plan, setPlan] = useState<WeekendPlan>({
     id: activeWeekId,
     saturday: [
-      { id: 'sat-1', text: 'Running largo de fondo (14km)', done: false },
-      { id: 'sat-2', text: 'Estudiar inglés 1 hora (Speaking pitch)', done: false },
+      { id: 'sat-1', text: 'Actividad de enfoque personal', done: false },
+      { id: 'sat-2', text: 'Tiempo libre / Recreación', done: false },
       { id: 'sat-3', text: 'Salida o cena familiar', done: false }
     ],
     sunday: [
       { id: 'sun-1', text: 'Planificar finanzas y revisar presupuestos', done: false },
-      { id: 'sun-2', text: 'Organizar agenda y comidas de la semana entrante', done: false },
+      { id: 'sun-2', text: 'Organizar agenda de la semana entrante', done: false },
       { id: 'sun-3', text: 'Descanso libre / Lectura', done: false }
     ],
     reflection: {
@@ -58,8 +58,8 @@ export const FinesDeSemana: React.FC = () => {
       setPlan({
         id: activeWeekId,
         saturday: [
-          { id: `sat-${Date.now()}-1`, text: 'Running largo de fondo', done: false },
-          { id: `sat-${Date.now()}-2`, text: 'Estudio de inglés 1h', done: false }
+          { id: `sat-${Date.now()}-1`, text: 'Actividad de enfoque personal', done: false },
+          { id: `sat-${Date.now()}-2`, text: 'Tiempo libre o familiar', done: false }
         ],
         sunday: [
           { id: `sun-${Date.now()}-1`, text: 'Revisión financiera semanal', done: false },
@@ -315,20 +315,20 @@ export const FinesDeSemana: React.FC = () => {
               />
             </div>
             <div>
-              <label className="form-label flex items-center gap-1"><HelpCircle className="w-3.5 h-3.5 text-purple-500" /> ¿Qué avance tuve en inglés?</label>
+              <label className="form-label flex items-center gap-1"><HelpCircle className="w-3.5 h-3.5 text-purple-500" /> ¿Qué avance tuve en mis enfoques y metas?</label>
               <textarea
                 value={plan.reflection.englishAdv}
                 onChange={(e) => handleReflectionChange('englishAdv', e.target.value)}
-                placeholder="Horas estudiadas, vocabulario aprendido..."
+                placeholder="Sesiones completadas, horas estudiadas, páginas leídas..."
                 className="form-input h-16 text-xs"
               />
             </div>
             <div>
-              <label className="form-label flex items-center gap-1"><HelpCircle className="w-3.5 h-3.5 text-aqua-500" /> ¿Qué avance tuve en el proyecto $4M?</label>
+              <label className="form-label flex items-center gap-1"><HelpCircle className="w-3.5 h-3.5 text-teal-500" /> ¿Qué avance tuve en mis proyectos y CRM?</label>
               <textarea
                 value={plan.reflection.projectAdv}
                 onChange={(e) => handleReflectionChange('projectAdv', e.target.value)}
-                placeholder="Clientes contactados, cotizaciones enviadas..."
+                placeholder="Clientes contactados, hitos del mes, propuestas enviadas..."
                 className="form-input h-16 text-xs"
               />
             </div>

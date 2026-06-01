@@ -1,4 +1,4 @@
-import { Transaction, Habit, CalendarEvent, EnglishSession, WorkoutSession, RunningSession, Prospect, MonthlyRoadmap, WeekendPlan, UserSettings } from '../types';
+import { Transaction, Habit, CalendarEvent, FocusPlan, FocusPlanSession, Prospect, MonthlyRoadmap, WeekendPlan, UserSettings } from '../types';
 
 export const defaultSettings: UserSettings = {
   username: "Kari",
@@ -288,126 +288,138 @@ export const defaultEvents: CalendarEvent[] = [
   }
 ];
 
-export const defaultEnglishSessions: EnglishSession[] = [
+export const defaultFocusPlans: FocusPlan[] = [
   {
-    id: "en-1",
+    id: "fp-gym",
+    name: "Gimnasio & Fitness",
+    icon: "Dumbbell",
+    color: "emerald",
+    target: 4,
+    unit: "sesiones",
+    timeframeType: "months",
+    timeframeValue: "6",
+    createdAt: "2026-05-01"
+  },
+  {
+    id: "fp-english",
+    name: "Estudio de Inglés",
+    icon: "Languages",
+    color: "purple",
+    target: 5,
+    unit: "horas",
+    timeframeType: "months",
+    timeframeValue: "6",
+    createdAt: "2026-05-01"
+  },
+  {
+    id: "fp-running",
+    name: "Correr (Running)",
+    icon: "Zap",
+    color: "blue",
+    target: 20,
+    unit: "km",
+    timeframeType: "months",
+    timeframeValue: "3",
+    createdAt: "2026-05-01"
+  }
+];
+
+export const defaultFocusSessions: FocusPlanSession[] = [
+  {
+    id: "fs-en-1",
+    planId: "fp-english",
     date: "2026-05-19",
-    minutes: 60,
-    practiceType: "Listening",
-    topic: "Power BI Analyst Case Studies",
-    difficulty: "Medio",
+    value: 1, // 60 min
+    details: "Listening (Power BI Case Studies)",
     notes: "Escuché podcast de analítica. Muy bueno para aprender cómo presentan métricas los profesionales."
   },
   {
-    id: "en-2",
+    id: "fs-en-2",
+    planId: "fp-english",
     date: "2026-05-20",
-    minutes: 60,
-    practiceType: "Business English",
-    topic: "Email Templates for Client Proposals",
-    difficulty: "Fácil",
+    value: 1, // 60 min
+    details: "Business English (Email Templates)",
     notes: "Redacté correos profesionales para enviar propuestas de proyectos de BI."
   },
   {
-    id: "en-3",
+    id: "fs-en-3",
+    planId: "fp-english",
     date: "2026-05-22",
-    minutes: 60,
-    practiceType: "Speaking",
-    topic: "Self Introduction & Services pitch",
-    difficulty: "Difícil",
-    notes: "Practiqué frente al espejo cómo presentarme y explicar mi rol como Directora de Analítica de Datos."
+    value: 1, // 60 min
+    details: "Speaking (Self Introduction)",
+    notes: "Practiqué frente al espejo cómo presentarme y explicar mi rol como Directora de Analítica."
   },
   {
-    id: "en-4",
+    id: "fs-en-4",
+    planId: "fp-english",
     date: "2026-05-23",
-    minutes: 90,
-    practiceType: "Reading",
-    topic: "Documentation on DAX Optimization",
-    difficulty: "Medio",
+    value: 1.5, // 90 min
+    details: "Reading (DAX Optimization)",
     notes: "Lectura técnica en inglés sobre optimización de queries y carga de datos."
   },
   {
-    id: "en-5",
+    id: "fs-en-5",
+    planId: "fp-english",
     date: "2026-05-24",
-    minutes: 60,
-    practiceType: "Grammar",
-    topic: "First and Second Conditionals in Business",
-    difficulty: "Medio",
+    value: 1, // 60 min
+    details: "Grammar (Conditionals)",
     notes: "Ejercicios prácticos aplicando condicionales a negociaciones financieras."
   },
   {
-    id: "en-6",
+    id: "fs-en-6",
+    planId: "fp-english",
     date: "2026-05-25",
-    minutes: 60,
-    practiceType: "Vocabulary",
-    topic: "Finance & Accounting KPIs",
-    difficulty: "Fácil",
-    notes: "Aprendí términos como: EBITDA, Gross Profit, Operating Expenses, Burn Rate."
-  }
-];
-
-export const defaultWorkoutSessions: WorkoutSession[] = [
+    value: 1, // 60 min
+    details: "Vocabulary (KPIs Finanzas)",
+    notes: "Aprendí términos como EBITDA, Gross Profit, Operating Expenses, Burn Rate."
+  },
   {
-    id: "w-1",
+    id: "fs-w-1",
+    planId: "fp-gym",
     date: "2026-05-19",
-    type: "Pierna",
-    duration: 60,
-    intensity: "Alta",
-    exercises: "Sentadillas libres: 4x10 (60kg)\nPrensa inclinada: 4x12 (120kg)\nZancadas con mancuerna: 3x12\nExtensión de piernas: 3x15",
-    notes: "Excelente entreno, mucha fuerza en las piernas hoy.",
-    energyLevel: 5
+    value: 1,
+    details: "Rutina Pierna",
+    notes: "Sentadillas libres: 4x10 (60kg), Prensa inclinada: 4x12 (120kg), Zancadas: 3x12. Fuerza alta."
   },
   {
-    id: "w-2",
+    id: "fs-w-2",
+    planId: "fp-gym",
     date: "2026-05-21",
-    type: "Brazos",
-    duration: 50,
-    intensity: "Media",
-    exercises: "Bíceps alternado con mancuerna: 4x12\nTríceps copa a dos manos: 4x12\nCurl de bíceps en polea: 3x15\nExtensión de tríceps polea alta: 3x15",
-    notes: "Buen bombeo de brazos, cansancio ligero de hombros por el trabajo.",
-    energyLevel: 4
+    value: 1,
+    details: "Rutina Brazos",
+    notes: "Bíceps alternado con mancuerna, Tríceps copa. Buen bombeo de brazos."
   },
   {
-    id: "w-3",
+    id: "fs-w-3",
+    planId: "fp-gym",
     date: "2026-05-24",
-    type: "Core",
-    duration: 45,
-    intensity: "Media",
-    exercises: "Plancha frontal: 3x1 min\nAbdominales crunch con disco: 4x20\nElevación de piernas colgada: 4x12\nGiros rusos: 3x30",
-    notes: "Foco en estabilidad. Un poco perezosa al inicio pero logré completarlo.",
-    energyLevel: 3
+    value: 1,
+    details: "Rutina Core",
+    notes: "Plancha frontal: 3x1 min, Abdominales crunch con disco: 4x20. Foco en estabilidad."
   },
   {
-    id: "w-4",
+    id: "fs-w-4",
+    planId: "fp-gym",
     date: "2026-05-25",
-    type: "Full body",
-    duration: 65,
-    intensity: "Alta",
-    exercises: "Peso muerto rumano: 4x10\nPress banca con mancuernas: 4x12\nRemo con barra: 4x10\nPress militar con barra: 3x12",
-    notes: "Entrenamiento completo pre-semanal. Buena respuesta cardiovascular.",
-    energyLevel: 4
-  }
-];
-
-export const defaultRunningSessions: RunningSession[] = [
-  {
-    id: "r-1",
-    date: "2026-05-20",
-    distance: 5,
-    time: "00:27:30",
-    pace: "5:30 min/km",
-    type: "Suave",
-    sensations: "Frescura total, rodaje para soltar piernas.",
-    notes: "Parque El Virrey. Clima templado ideal."
+    value: 1,
+    details: "Full Body",
+    notes: "Peso muerto rumano: 4x10, Press banca: 4x12. Entrenamiento completo pre-semanal."
   },
   {
-    id: "r-2",
+    id: "fs-r-1",
+    planId: "fp-running",
+    date: "2026-05-20",
+    value: 5,
+    details: "Running Suave",
+    notes: "Parque El Virrey. Clima templado ideal, rodaje para soltar piernas."
+  },
+  {
+    id: "fs-r-2",
+    planId: "fp-running",
     date: "2026-05-23",
-    distance: 12,
-    time: "01:08:24",
-    pace: "5:42 min/km",
-    type: "Fondo",
-    sensations: "Cansancio al km 9, pero mentalmente fuerte para terminar.",
-    notes: "Tirada larga del sábado. Hidratación con electrolitos."
+    value: 12,
+    details: "Fondo Largo",
+    notes: "Tirada larga del sábado. Hidratación con electrolitos. Un poco cansada en km 9."
   }
 ];
 

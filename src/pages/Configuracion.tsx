@@ -195,8 +195,8 @@ export const Configuracion: React.FC = () => {
     const data: Record<string, string | null> = {};
     const keys = [
       'kari_360_settings', 'kari_360_transactions', 'kari_360_habits', 
-      'kari_360_events', 'kari_360_englishSessions', 'kari_360_workoutSessions', 
-      'kari_360_runningSessions', 'kari_360_prospects', 'kari_360_roadmaps', 
+      'kari_360_events', 'kari_360_focusPlans', 'kari_360_focusSessions', 
+      'kari_360_prospects', 'kari_360_roadmaps', 
       'kari_360_weekendPlans'
     ];
     keys.forEach(k => {

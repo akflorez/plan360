@@ -1,25 +1,23 @@
 import React, { useState } from 'react';
+import * as Icons from 'lucide-react';
 import { 
   TrendingUp, 
   TrendingDown, 
   DollarSign, 
   PiggyBank, 
   Target, 
-  Languages, 
-  Dumbbell, 
   CheckCircle,
   Plus,
   Trash2,
   Sparkles
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { FocusPlan } from '../types';
 import { StatCard } from '../components/StatCard';
 import { ProgressBar } from '../components/ProgressBar';
 import { getThemeStyles } from '../utils/theme';
 import { 
   calculateFinances, 
-  calculateEnglishStats, 
-  calculateSportsStats, 
   calculateCRMStats 
 } from '../utils/formulas';
 import { 
@@ -42,9 +40,8 @@ export const Dashboard: React.FC = () => {
   const { 
     transactions, 
     habits, 
-    englishSessions, 
-    workoutSessions, 
-    runningSessions, 
+    focusPlans, 
+    focusSessions, 
     prospects, 
     roadmaps, 
     settings 
@@ -57,8 +54,8 @@ export const Dashboard: React.FC = () => {
   const [focusTasks, setFocusTasks] = useState<{ id: string; text: string; done: boolean }[]>(() => {
     const stored = localStorage.getItem('kari_360_daily_focus');
     return stored ? JSON.parse(stored) : [
-      { id: 'f-1', text: 'Estudiar inglés 1 hora (Business English focus)', done: false },
-      { id: 'f-2', text: 'Contactar 5 prospectos en LinkedIn para Proyecto $4M', done: false },
+      { id: 'f-1', text: 'Practicar inglés oral 15 minutos', done: false },
+      { id: 'f-2', text: 'Avanzar actividades del enfoque de la semana', done: false },
       { id: 'f-3', text: 'Registrar los gastos acumulados del día', done: false }
     ];
   });
@@ -88,10 +85,70 @@ export const Dashboard: React.FC = () => {
     saveFocusTasks(updated);
   };
 
+  // Helper to render lucide icons dynamically
+  const IconRenderer = ({ name, className }: { name: string; className?: string }) => {
+    const IconComp = (Icons as any)[name];
+    if (IconComp) {
+      return <IconComp className={className} />;
+    }
+    return <Icons.Target className={className} />;
+  };
+
+  // Helpers to compute current week value for focus plans
+  const getWeeklyValue = (planId: string) => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
+    const monday = new Date(now.setDate(diff));
+    monday.setHours(0, 0, 0, 0);
+
+    return focusSessions
+      .filter(s => s.planId === planId && new Date(s.date) >= monday)
+      .reduce((sum, s) => sum + Number(s.value || 0), 0);
+  };
+
+  // Helper to compute timeframe / countdown stats
+  const getTimeframeStats = (plan: FocusPlan) => {
+    const createdDate = new Date(plan.createdAt);
+    const today = new Date();
+    const diffTime = today.getTime() - createdDate.getTime();
+    const daysElapsed = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+
+    let totalDays = 0;
+    let daysLeft = 0;
+    let progressPercent = 0;
+
+    if (plan.timeframeType === 'months') {
+      const months = parseInt(plan.timeframeValue) || 1;
+      totalDays = months * 30;
+      daysLeft = Math.max(0, totalDays - daysElapsed);
+      progressPercent = totalDays > 0 ? Math.min((daysElapsed / totalDays) * 100, 100) : 0;
+    } else {
+      const targetDate = new Date(plan.timeframeValue);
+      const totalTime = targetDate.getTime() - createdDate.getTime();
+      totalDays = Math.max(1, Math.ceil(totalTime / (1000 * 60 * 60 * 24)));
+      
+      const timeLeft = targetDate.getTime() - today.getTime();
+      daysLeft = Math.max(0, Math.ceil(timeLeft / (1000 * 60 * 60 * 24)));
+      
+      progressPercent = totalDays > 0 ? Math.min(((totalDays - daysLeft) / totalDays) * 100, 100) : 0;
+    }
+
+    return { daysElapsed, totalDays, daysLeft, progressPercent };
+  };
+
+  const focusColors = {
+    emerald: { iconBg: 'bg-emerald-50 text-emerald-600', bar: 'bg-emerald-500' },
+    indigo: { iconBg: 'bg-indigo-50 text-indigo-600', bar: 'bg-indigo-500' },
+    purple: { iconBg: 'bg-purple-50 text-purple-600', bar: 'bg-purple-500' },
+    rose: { iconBg: 'bg-rose-50 text-rose-600', bar: 'bg-rose-500' },
+    amber: { iconBg: 'bg-amber-50 text-amber-600', bar: 'bg-amber-500' },
+    blue: { iconBg: 'bg-blue-50 text-blue-600', bar: 'bg-blue-500' },
+    aqua: { iconBg: 'bg-teal-50 text-teal-650', bar: 'bg-teal-500' }
+  };
+
   // Perform Calculations
   const finStats = calculateFinances(transactions, settings.monthlyBudget);
-  const engStats = calculateEnglishStats(englishSessions, settings.dailyEnglishGoal);
-  const sportStats = calculateSportsStats(workoutSessions, runningSessions, settings);
   const crmStats = calculateCRMStats(prospects, transactions, settings.extraIncomeGoal);
 
   // Roadmap project compliance
@@ -212,40 +269,46 @@ export const Dashboard: React.FC = () => {
 
       {/* Compliance Mini Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* English Card */}
-        <div className="glass-card p-6 flex items-center gap-4 bg-white">
-          <div className={`p-3 rounded-2xl shrink-0 ${theme === 'masculino' ? 'bg-amber-50 text-amber-600' : 'bg-purple-50 text-purple-600'}`}>
-            <Languages className="w-6 h-6" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Inglés Semanal</p>
-            <h4 className="text-lg font-bold text-slate-800 mt-0.5">{engStats.weeklyHours.toFixed(1)} horas</h4>
-            <div className="mt-2.5">
-              <ProgressBar percent={engStats.compliancePercent} height="sm" color={theme === 'masculino' ? 'amber' : 'purple'} label="Cumplimiento mensual" />
-            </div>
-          </div>
-        </div>
+        {focusPlans.slice(0, 2).map((plan) => {
+          const styles = focusColors[plan.color || 'emerald'];
+          const curVal = getWeeklyValue(plan.id);
+          const compPercent = Math.min((curVal / plan.target) * 100, 100);
+          const timeStats = getTimeframeStats(plan);
 
-        {/* Workout Card */}
-        <div className="glass-card p-6 flex items-center gap-4 bg-white">
-          <div className={`p-3 rounded-2xl shrink-0 ${theme === 'masculino' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>
-            <Dumbbell className="w-6 h-6" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Deporte Semanal</p>
-            <h4 className="text-lg font-bold text-slate-800 mt-0.5">
-              {sportStats.gymSessionsThisWeek} gym • {sportStats.kmRunThisWeek.toFixed(0)} km running
-            </h4>
-            <div className="mt-2.5 flex gap-2">
-              <div className="flex-1">
-                <ProgressBar percent={sportStats.gymCompliancePercent} height="sm" color={theme === 'masculino' ? 'navy' : 'emerald'} label="Gym" />
+          return (
+            <div key={plan.id} className="glass-card p-6 flex items-center gap-4 bg-white">
+              <div className={`p-3 rounded-2xl shrink-0 ${styles.iconBg}`}>
+                <IconRenderer name={plan.icon} className="w-6 h-6" />
               </div>
-              <div className="flex-1">
-                <ProgressBar percent={sportStats.runningCompliancePercent} height="sm" color="aqua" label="Running" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-450 font-bold uppercase tracking-wider">{plan.name}</p>
+                <h4 className="text-base font-bold text-slate-800 mt-0.5">
+                  {curVal} / {plan.target} <span className="text-xs font-normal text-slate-400">{plan.unit}</span>
+                </h4>
+                <div className="mt-2 flex justify-between text-[9px] text-slate-450 font-bold uppercase tracking-wide">
+                  <span>Faltan {timeStats.daysLeft} días</span>
+                  <span>{compPercent.toFixed(0)}%</span>
+                </div>
+                <div className="mt-1">
+                  <ProgressBar percent={compPercent} height="sm" color={plan.color} label="" />
+                </div>
               </div>
             </div>
+          );
+        })}
+
+        {focusPlans.length < 2 && (
+          <div className="glass-card p-6 flex items-center gap-4 bg-white border-dashed border-slate-200">
+            <div className="p-3 bg-slate-50 text-slate-400 rounded-2xl shrink-0">
+              <Icons.HelpCircle className="w-6 h-6" />
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Nuevo Enfoque</p>
+              <h4 className="text-xs font-bold text-slate-750 mt-1">Configura más metas</h4>
+              <p className="text-[10px] text-slate-400 mt-0.5">Sigue tu progreso de forma ágil desde el panel principal.</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Project 6M Card */}
         <div className="glass-card p-6 flex items-center gap-4 bg-white">
@@ -253,8 +316,8 @@ export const Dashboard: React.FC = () => {
             <Target className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Plan de 6 Meses</p>
-            <h4 className="text-lg font-bold text-slate-800 mt-0.5">{doneRoadmapGoals} de {totalRoadmapGoals} hitos</h4>
+            <p className="text-xs text-slate-450 font-bold uppercase tracking-wider">Plan de 6 Meses</p>
+            <h4 className="text-base font-bold text-slate-800 mt-0.5">{doneRoadmapGoals} de {totalRoadmapGoals} hitos</h4>
             <div className="mt-2.5">
               <ProgressBar percent={projectCompliance} height="sm" color={theme === 'masculino' ? 'purple' : 'amber'} label="Progreso general" />
             </div>

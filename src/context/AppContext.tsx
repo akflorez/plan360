@@ -1,13 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Transaction, Habit, CalendarEvent, EnglishSession, WorkoutSession, RunningSession, Prospect, MonthlyRoadmap, WeekendPlan, UserSettings } from '../types';
+import { Transaction, Habit, CalendarEvent, FocusPlan, FocusPlanSession, Prospect, MonthlyRoadmap, WeekendPlan, UserSettings } from '../types';
 import { 
   defaultSettings, 
   defaultTransactions, 
   defaultHabits, 
   defaultEvents, 
-  defaultEnglishSessions, 
-  defaultWorkoutSessions, 
-  defaultRunningSessions, 
+  defaultFocusPlans, 
+  defaultFocusSessions, 
   defaultProspects, 
   defaultRoadmaps, 
   defaultWeekendPlans 
@@ -18,9 +17,8 @@ interface AppContextProps {
   transactions: Transaction[];
   habits: Habit[];
   events: CalendarEvent[];
-  englishSessions: EnglishSession[];
-  workoutSessions: WorkoutSession[];
-  runningSessions: RunningSession[];
+  focusPlans: FocusPlan[];
+  focusSessions: FocusPlanSession[];
   prospects: Prospect[];
   roadmaps: MonthlyRoadmap[];
   weekendPlans: WeekendPlan[];
@@ -38,10 +36,10 @@ interface AppContextProps {
   updateEvent: (evt: CalendarEvent) => void;
   deleteEvent: (id: string) => void;
   
-  addEnglishSession: (session: Omit<EnglishSession, 'id'>) => void;
-  
-  addWorkoutSession: (session: Omit<WorkoutSession, 'id'>) => void;
-  addRunningSession: (session: Omit<RunningSession, 'id'>) => void;
+  addFocusPlan: (plan: Omit<FocusPlan, 'id' | 'createdAt'>) => void;
+  deleteFocusPlan: (id: string) => void;
+  addFocusSession: (session: Omit<FocusPlanSession, 'id'>) => void;
+  deleteFocusSession: (id: string) => void;
   
   addProspect: (prospect: Omit<Prospect, 'id'>) => void;
   updateProspect: (prospect: Prospect) => void;
@@ -78,19 +76,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return val ? JSON.parse(val) : defaultEvents;
   });
 
-  const [englishSessions, setEnglishSessions] = useState<EnglishSession[]>(() => {
-    const val = localStorage.getItem('kari_360_englishSessions');
-    return val ? JSON.parse(val) : defaultEnglishSessions;
+  const [focusPlans, setFocusPlans] = useState<FocusPlan[]>(() => {
+    const val = localStorage.getItem('kari_360_focusPlans');
+    return val ? JSON.parse(val) : defaultFocusPlans;
   });
 
-  const [workoutSessions, setWorkoutSessions] = useState<WorkoutSession[]>(() => {
-    const val = localStorage.getItem('kari_360_workoutSessions');
-    return val ? JSON.parse(val) : defaultWorkoutSessions;
-  });
-
-  const [runningSessions, setRunningSessions] = useState<RunningSession[]>(() => {
-    const val = localStorage.getItem('kari_360_runningSessions');
-    return val ? JSON.parse(val) : defaultRunningSessions;
+  const [focusSessions, setFocusSessions] = useState<FocusPlanSession[]>(() => {
+    const val = localStorage.getItem('kari_360_focusSessions');
+    return val ? JSON.parse(val) : defaultFocusSessions;
   });
 
   const [prospects, setProspects] = useState<Prospect[]>(() => {
@@ -126,16 +119,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [events]);
 
   useEffect(() => {
-    localStorage.setItem('kari_360_englishSessions', JSON.stringify(englishSessions));
-  }, [englishSessions]);
+    localStorage.setItem('kari_360_focusPlans', JSON.stringify(focusPlans));
+  }, [focusPlans]);
 
   useEffect(() => {
-    localStorage.setItem('kari_360_workoutSessions', JSON.stringify(workoutSessions));
-  }, [workoutSessions]);
-
-  useEffect(() => {
-    localStorage.setItem('kari_360_runningSessions', JSON.stringify(runningSessions));
-  }, [runningSessions]);
+    localStorage.setItem('kari_360_focusSessions', JSON.stringify(focusSessions));
+  }, [focusSessions]);
 
   useEffect(() => {
     localStorage.setItem('kari_360_prospects', JSON.stringify(prospects));
@@ -206,28 +195,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setEvents(prev => prev.filter(e => e.id !== id));
   };
 
-  const addEnglishSession = (session: Omit<EnglishSession, 'id'>) => {
-    const newSession: EnglishSession = {
-      ...session,
-      id: `en-${Date.now()}`
+  const addFocusPlan = (plan: Omit<FocusPlan, 'id' | 'createdAt'>) => {
+    const newPlan: FocusPlan = {
+      ...plan,
+      id: `fp-${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0]
     };
-    setEnglishSessions(prev => [newSession, ...prev]);
+    setFocusPlans(prev => [...prev, newPlan]);
   };
 
-  const addWorkoutSession = (session: Omit<WorkoutSession, 'id'>) => {
-    const newSession: WorkoutSession = {
-      ...session,
-      id: `w-${Date.now()}`
-    };
-    setWorkoutSessions(prev => [newSession, ...prev]);
+  const deleteFocusPlan = (id: string) => {
+    setFocusPlans(prev => prev.filter(p => p.id !== id));
+    setFocusSessions(prev => prev.filter(s => s.planId !== id));
   };
 
-  const addRunningSession = (session: Omit<RunningSession, 'id'>) => {
-    const newSession: RunningSession = {
+  const addFocusSession = (session: Omit<FocusPlanSession, 'id'>) => {
+    const newSession: FocusPlanSession = {
       ...session,
-      id: `r-${Date.now()}`
+      id: `fs-${Date.now()}`
     };
-    setRunningSessions(prev => [newSession, ...prev]);
+    setFocusSessions(prev => [newSession, ...prev]);
+  };
+
+  const deleteFocusSession = (id: string) => {
+    setFocusSessions(prev => prev.filter(s => s.id !== id));
   };
 
   const addProspect = (p: Omit<Prospect, 'id'>) => {
@@ -285,9 +276,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setTransactions(defaultTransactions);
     setHabits(defaultHabits);
     setEvents(defaultEvents);
-    setEnglishSessions(defaultEnglishSessions);
-    setWorkoutSessions(defaultWorkoutSessions);
-    setRunningSessions(defaultRunningSessions);
+    setFocusPlans(defaultFocusPlans);
+    setFocusSessions(defaultFocusSessions);
     setProspects(defaultProspects);
     setRoadmaps(defaultRoadmaps);
     setWeekendPlans(defaultWeekendPlans);
@@ -297,9 +287,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('kari_360_transactions');
     localStorage.removeItem('kari_360_habits');
     localStorage.removeItem('kari_360_events');
-    localStorage.removeItem('kari_360_englishSessions');
-    localStorage.removeItem('kari_360_workoutSessions');
-    localStorage.removeItem('kari_360_runningSessions');
+    localStorage.removeItem('kari_360_focusPlans');
+    localStorage.removeItem('kari_360_focusSessions');
     localStorage.removeItem('kari_360_prospects');
     localStorage.removeItem('kari_360_roadmaps');
     localStorage.removeItem('kari_360_weekendPlans');
@@ -311,9 +300,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       transactions,
       habits,
       events,
-      englishSessions,
-      workoutSessions,
-      runningSessions,
+      focusPlans,
+      focusSessions,
       prospects,
       roadmaps,
       weekendPlans,
@@ -325,9 +313,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addEvent,
       updateEvent,
       deleteEvent,
-      addEnglishSession,
-      addWorkoutSession,
-      addRunningSession,
+      addFocusPlan,
+      deleteFocusPlan,
+      addFocusSession,
+      deleteFocusSession,
       addProspect,
       updateProspect,
       deleteProspect,
