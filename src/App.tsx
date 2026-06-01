@@ -14,32 +14,13 @@ import { Metas6Meses } from './pages/Metas6Meses';
 import { Configuracion } from './pages/Configuracion';
 
 function AppContent() {
-  const { settings } = useApp();
+  const { settings, isAuthenticated, logoutUser } = useApp();
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
-  
-  // Local authentication state backed by LocalStorage
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('plan_360_auth') === 'true';
-  });
-
   const [authView, setAuthView] = useState<'landing' | 'login' | 'register'>('landing');
-
-  const handleLogin = (username: string) => {
-    setIsAuthenticated(true);
-    localStorage.setItem('plan_360_auth', 'true');
-    // Set username configured in config page if needed, or default
-    const storedSettings = localStorage.getItem('kari_360_settings');
-    if (storedSettings) {
-      const parsed = JSON.parse(storedSettings);
-      parsed.username = username;
-      localStorage.setItem('kari_360_settings', JSON.stringify(parsed));
-    }
-  };
 
   const handleLogout = () => {
     if (confirm('¿Estás segura de cerrar tu sesión actual?')) {
-      setIsAuthenticated(false);
-      localStorage.removeItem('plan_360_auth');
+      logoutUser();
       setAuthView('landing');
     }
   };
@@ -75,7 +56,6 @@ function AppContent() {
     }
     return (
       <Login 
-        onLogin={handleLogin} 
         initialMode={authView} 
         onBackToLanding={() => setAuthView('landing')} 
       />

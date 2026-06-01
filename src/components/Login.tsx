@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Lock, User, Mail, Globe, Tag, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
 interface LoginProps {
-  onLogin: (username: string) => void;
   initialMode?: 'login' | 'register';
   onBackToLanding: () => void;
 }
@@ -13,8 +13,9 @@ const quotes = [
   { text: "Tus objetivos semanales no fallan por falta de talento, sino por falta de consistencia.", author: "James Clear" }
 ];
 
-export const Login: React.FC<LoginProps> = ({ onLogin, initialMode = 'login', onBackToLanding }) => {
+export const Login: React.FC<LoginProps> = ({ initialMode = 'login', onBackToLanding }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const { loginUser: apiLoginUser, registerUser: apiRegisterUser } = useApp();
   
   // Login fields
   const [loginUser, setLoginUser] = useState('Kari');
@@ -39,7 +40,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMode = 'login', on
     return () => clearInterval(timer);
   }, []);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -48,18 +49,14 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMode = 'login', on
       return;
     }
 
-    // Default credential validation
-    if (loginUser.trim().toLowerCase() === 'kari' && loginPass === '123') {
-      onLogin(loginUser.trim());
-    } else if (loginPass === '123') {
-      // Allow custom names with demonstration password
-      onLogin(loginUser.trim());
-    } else {
-      setErrorMsg('Contraseña incorrecta. (Prueba con la contraseña demo "123")');
+    try {
+      await apiLoginUser(loginUser.trim(), loginPass);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Contraseña incorrecta o error de conexión. (Prueba con la contraseña demo "123")');
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -82,15 +79,18 @@ export const Login: React.FC<LoginProps> = ({ onLogin, initialMode = 'login', on
         "Servicios", "Salud", "Gym", "Running", "Ropa", "Ocio", "Familia", 
         "Deudas", "Ahorro", "Educación", "Proyecto digital", "Otros"
       ],
-      theme: 'femenino',
+      theme: 'femenino' as const,
       profilePic: '',
       subscriptionPlan: regPlan,
       subscriptionRenewal: '2026-12-31',
-      subscriptionStatus: 'Activa'
+      subscriptionStatus: 'Activa' as const
     };
 
-    localStorage.setItem('kari_360_settings', JSON.stringify(userSettings));
-    onLogin(regUser.trim());
+    try {
+      await apiRegisterUser(regUser.trim(), regEmail.trim(), regPass, userSettings);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error al crear la cuenta. Comprueba los campos.');
+    }
   };
 
   return (
