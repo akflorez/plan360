@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Layout } from './components/Layout';
 import { Login } from './components/Login';
+import { LandingPage } from './pages/LandingPage';
 import { Dashboard } from './pages/Dashboard';
 import { Finanzas } from './pages/Finanzas';
 import { Calendario } from './pages/Calendario';
@@ -21,6 +22,8 @@ function AppContent() {
     return localStorage.getItem('plan_360_auth') === 'true';
   });
 
+  const [authView, setAuthView] = useState<'landing' | 'login' | 'register'>('landing');
+
   const handleLogin = (username: string) => {
     setIsAuthenticated(true);
     localStorage.setItem('plan_360_auth', 'true');
@@ -37,6 +40,7 @@ function AppContent() {
     if (confirm('¿Estás segura de cerrar tu sesión actual?')) {
       setIsAuthenticated(false);
       localStorage.removeItem('plan_360_auth');
+      setAuthView('landing');
     }
   };
 
@@ -66,7 +70,16 @@ function AppContent() {
   };
 
   if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />;
+    if (authView === 'landing') {
+      return <LandingPage onNavigate={(view) => setAuthView(view)} />;
+    }
+    return (
+      <Login 
+        onLogin={handleLogin} 
+        initialMode={authView} 
+        onBackToLanding={() => setAuthView('landing')} 
+      />
+    );
   }
 
   return (
