@@ -17,7 +17,7 @@ if (isPostgres) {
   console.log('Database: Using PostgreSQL');
   pgPool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_SSL === 'true' || process.env.NODE_ENV === 'production' 
+    ssl: process.env.DATABASE_SSL === 'true'
       ? { rejectUnauthorized: false } 
       : false
   });
