@@ -637,8 +637,11 @@ const distPath = pathModule.join(__dirname, '../dist');
 app.use(express.static(distPath));
 
 // Fallback index.html for SPA router
-app.get('*', (req, res) => {
-  res.sendFile(pathModule.join(distPath, 'index.html'));
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    return res.sendFile(pathModule.join(distPath, 'index.html'));
+  }
+  next();
 });
 
 app.listen(PORT, () => {
