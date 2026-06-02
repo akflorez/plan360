@@ -1,5 +1,4 @@
 import pg from 'pg';
-import sqlite3 from 'sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -22,9 +21,17 @@ if (isPostgres) {
       : false
   });
 } else {
-  const dbPath = path.resolve(__dirname, '../planner.db');
-  console.log(`Database: Using SQLite at ${dbPath}`);
-  sqliteDb = new sqlite3.Database(dbPath);
+  // Only load sqlite3 when actually needed (avoids native compilation issues in production)
+  try {
+    const sqlite3Module = await import('sqlite3');
+    const sqlite3 = sqlite3Module.default;
+    const dbPath = path.resolve(__dirname, '../planner.db');
+    console.log(`Database: Using SQLite at ${dbPath}`);
+    sqliteDb = new sqlite3.Database(dbPath);
+  } catch (err) {
+    console.error('SQLite3 not available. Install sqlite3 for local development or set DATABASE_URL for PostgreSQL.');
+    console.error(err.message);
+  }
 }
 
 // Wrapper for query execution to make it DB-agnostic
@@ -35,7 +42,7 @@ export const query = (text, params = []) => {
         if (err) return reject(err);
         resolve({ rows: res.rows });
       });
-    } else {
+    } else if (sqliteDb) {
       // Translate Postgres parameters ($1, $2) to SQLite (?)
       const sqliteText = text.replace(/\$\d+/g, '?');
       
@@ -50,11 +57,11 @@ export const query = (text, params = []) => {
       } else {
         sqliteDb.run(sqliteText, params, function(err) {
           if (err) return reject(err);
-          // For INSERT, SQLite returns the last ID in this.lastID
-          // We can attach it so it acts like Postgres RETURNING id
           resolve({ rows: [{ id: this.lastID }], lastID: this.lastID, changes: this.changes });
         });
       }
+    } else {
+      reject(new Error('No database available. Set DATABASE_URL or install sqlite3.'));
     }
   });
 };
@@ -65,9 +72,7 @@ export const initDb = async () => {
     ? 'id SERIAL PRIMARY KEY' 
     : 'id INTEGER PRIMARY KEY AUTOINCREMENT';
   
-  const defaultTimestamp = isPostgres
-    ? 'DEFAULT CURRENT_TIMESTAMP'
-    : 'DEFAULT CURRENT_TIMESTAMP';
+  const defaultTimestamp = 'DEFAULT CURRENT_TIMESTAMP';
 
   try {
     // 1. Users Table
