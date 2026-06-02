@@ -637,7 +637,7 @@ const distPath = pathModule.join(__dirname, '../dist');
 app.use(express.static(distPath));
 
 // Fallback index.html for SPA router
-app.get('/{*splat}', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(pathModule.join(distPath, 'index.html'));
 });
 
