@@ -8,17 +8,30 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isPostgres = !!process.env.DATABASE_URL;
+// Coolify sometimes auto-injects a bad DATABASE_URL pointing to hostname 'base'.
+// We detect this and override with the real production connection string.
+const PRODUCTION_DB_URL = 'postgres://postgres:D4UuFnG3Jge4VphME7Y595JgPsVUJYVoY6g5eQVHOy6ymed1RBSg8LdiZSSXMp1S@tfklvo7ogxp06cdqyfgydns9:5432/postgres';
+
+let rawDbUrl = process.env.DATABASE_URL || '';
+
+// If Coolify injected a bad URL (pointing to 'base'), use the real one
+if (rawDbUrl && rawDbUrl.includes('@base:')) {
+  console.log('Database: Detected bad Coolify auto-injected URL, using real production URL');
+  rawDbUrl = PRODUCTION_DB_URL;
+} else if (!rawDbUrl && process.env.NODE_ENV === 'production') {
+  console.log('Database: No DATABASE_URL found, using production fallback URL');
+  rawDbUrl = PRODUCTION_DB_URL;
+}
+
+const isPostgres = !!rawDbUrl;
 let pgPool = null;
 let sqliteDb = null;
 
 if (isPostgres) {
   console.log('Database: Using PostgreSQL');
   pgPool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_SSL === 'true'
-      ? { rejectUnauthorized: false } 
-      : false
+    connectionString: rawDbUrl,
+    ssl: false
   });
 } else {
   // Only load sqlite3 when actually needed (avoids native compilation issues in production)
