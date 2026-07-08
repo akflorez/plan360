@@ -8,19 +8,18 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Coolify sometimes auto-injects a bad DATABASE_URL pointing to hostname 'base'.
-// We detect this and override with the real production connection string.
+// Coolify auto-injects a bad DATABASE_URL with hostname 'base' that doesn't resolve.
+// In production, we always use the real internal PostgreSQL URL directly.
 const PRODUCTION_DB_URL = 'postgres://postgres:D4UuFnG3Jge4VphME7Y595JgPsVUJYVoY6g5eQVHOy6ymed1RBSg8LdiZSSXMp1S@tfklvo7ogxp06cdqyfgydns9:5432/postgres';
 
-let rawDbUrl = process.env.DATABASE_URL || '';
+let rawDbUrl = '';
 
-// If Coolify injected a bad URL (pointing to 'base'), use the real one
-if (rawDbUrl && rawDbUrl.includes('@base:')) {
-  console.log('Database: Detected bad Coolify auto-injected URL, using real production URL');
+if (process.env.NODE_ENV === 'production') {
+  // Always use real URL in production — Coolify keeps injecting a broken one
   rawDbUrl = PRODUCTION_DB_URL;
-} else if (!rawDbUrl && process.env.NODE_ENV === 'production') {
-  console.log('Database: No DATABASE_URL found, using production fallback URL');
-  rawDbUrl = PRODUCTION_DB_URL;
+  console.log('Database: Production mode — using hardcoded PostgreSQL URL');
+} else if (process.env.DATABASE_URL) {
+  rawDbUrl = process.env.DATABASE_URL;
 }
 
 const isPostgres = !!rawDbUrl;
