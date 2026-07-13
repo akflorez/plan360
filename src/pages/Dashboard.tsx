@@ -218,13 +218,13 @@ export const Dashboard: React.FC = () => {
               <span>Planes de Transformación a 6 Meses</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">PLAN 360</h1>
-            <p className="text-slate-600 text-sm max-w-xl">
+            <p className="text-slate-200 text-sm max-w-xl">
               Estás en el camino hacia la libertad financiera, el bilingüismo y tu máximo rendimiento deportivo. Mantén la disciplina diaria y evalúa tus progresos.
             </p>
           </div>
           <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 shrink-0">
             <div className="text-right">
-              <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Avance Meta $4M COP</p>
+              <p className="text-[10px] text-slate-200 font-bold uppercase tracking-wider">Avance Meta $4M COP</p>
               <h4 className="text-xl font-black text-white mt-0.5">{crmStats.goalProgressPercent.toFixed(0)}%</h4>
             </div>
             <div className="w-12 h-12 rounded-full border-4 border-white/15 border-t-white flex items-center justify-center font-bold text-sm text-white">
