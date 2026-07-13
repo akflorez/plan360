@@ -51,6 +51,9 @@ export const Finanzas: React.FC = () => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [filterMonth, setFilterMonth] = useState<string>(() => {
+    return new Date().toLocaleDateString('sv-SE').substring(0, 7);
+  });
 
   // Projections local state (initialized from UserSettings or calculated fields)
   const [projIncome, setProjIncome] = useState<number>(6000000 + 4000000); // Salario + Extra Goal
@@ -82,8 +85,30 @@ export const Finanzas: React.FC = () => {
   const [debtDueDate, setDebtDueDate] = useState('');
   const [debtStatus, setDebtStatus] = useState<'pendiente' | 'pagado'>('pendiente');
 
+  // Month Filtering Helper Calculations
+  const currentMonthKey = new Date().toLocaleDateString('sv-SE').substring(0, 7);
+  const availableMonths = Array.from(new Set(
+    transactions.map(tx => tx.date.substring(0, 7))
+  )).filter(Boolean);
+  
+  if (!availableMonths.includes(currentMonthKey)) {
+    availableMonths.push(currentMonthKey);
+  }
+  availableMonths.sort().reverse();
+
+  const formatMonthName = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+    return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+  };
+
   // Calculations
-  const finStats = calculateFinances(transactions, settings.monthlyBudget);
+  const monthFilteredTransactions = filterMonth === 'all'
+    ? transactions
+    : transactions.filter(tx => tx.date.substring(0, 7) === filterMonth);
+
+  const finStats = calculateFinances(monthFilteredTransactions, settings.monthlyBudget);
 
   // 1. Calculate Account Balances
   const customAccountsList = settings.customAccounts || ['Bancolombia', 'Nequi', 'Daviplata', 'Efectivo', 'Tarjeta de Crédito'];
@@ -287,13 +312,14 @@ export const Finanzas: React.FC = () => {
 
   // Filter Logic
   const filteredTransactions = transactions.filter(tx => {
+    const matchesMonth = filterMonth === 'all' || tx.date.substring(0, 7) === filterMonth;
     const matchesType = filterType === 'all' || tx.type === filterType;
     const matchesCategory = filterCategory === 'all' || tx.category === filterCategory;
     const matchesStatus = filterStatus === 'all' || tx.status === filterStatus;
     const matchesSearch = 
       tx.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
       tx.category.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesType && matchesCategory && matchesStatus && matchesSearch;
+    return matchesMonth && matchesType && matchesCategory && matchesStatus && matchesSearch;
   });
 
   const combinedReceivables = [
@@ -507,6 +533,20 @@ export const Finanzas: React.FC = () => {
                   className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-navy-800/10 focus:border-navy-800 text-xs"
                 />
               </div>
+
+              {/* Month/Year Filter */}
+              <select
+                value={filterMonth}
+                onChange={(e) => setFilterMonth(e.target.value)}
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-705 focus:outline-none focus:ring-2 focus:ring-navy-800/10 focus:border-navy-800"
+              >
+                <option value="all">📅 Todos los meses</option>
+                {availableMonths.map(mKey => (
+                  <option key={mKey} value={mKey}>
+                    {formatMonthName(mKey)}
+                  </option>
+                ))}
+              </select>
 
               {/* Type Filter */}
               <select
