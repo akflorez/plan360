@@ -242,6 +242,21 @@ export const initDb = async () => {
       )
     `);
 
+    // 10. Debts Table
+    await query(`
+      CREATE TABLE IF NOT EXISTS debts (
+        id VARCHAR(100) PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        person VARCHAR(255) NOT NULL,
+        amount REAL NOT NULL,
+        description TEXT,
+        due_date VARCHAR(50),
+        status VARCHAR(50) NOT NULL,
+        created_at VARCHAR(50) NOT NULL
+      )
+    `);
+
     console.log('Database tables successfully initialized/verified.');
   } catch (err) {
     console.error('Error initializing database tables:', err);

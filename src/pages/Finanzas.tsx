@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Transaction } from '../types';
+import { Transaction, Debt } from '../types';
 import { calculateFinances } from '../utils/formulas';
 import { getThemeStyles } from '../utils/theme';
 import { 
@@ -18,16 +18,29 @@ import {
   Clock, 
   X,
   FileCheck,
-  ChevronDown
+  ChevronDown,
+  UserCheck,
+  DollarSign
 } from 'lucide-react';
 
 export const Finanzas: React.FC = () => {
-  const { transactions, addTransaction, updateTransaction, deleteTransaction, settings, updateSettings } = useApp();
+  const { 
+    transactions, 
+    addTransaction, 
+    updateTransaction, 
+    deleteTransaction, 
+    settings, 
+    updateSettings,
+    debts,
+    addDebt,
+    updateDebt,
+    deleteDebt
+  } = useApp();
   const theme = settings.theme || 'femenino';
   const styles = getThemeStyles(theme);
   
-  // Navigation tabs: 'ledger' | 'projection'
-  const [activeSubTab, setActiveSubTab] = useState<'ledger' | 'projection'>('ledger');
+  // Navigation tabs: 'ledger' | 'projection' | 'debts'
+  const [activeSubTab, setActiveSubTab] = useState<'ledger' | 'projection' | 'debts'>('ledger');
   
   // CRUD States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,6 +71,16 @@ export const Finanzas: React.FC = () => {
   const [formSharedPerson, setFormSharedPerson] = useState('');
   const [formSharedAmount, setFormSharedAmount] = useState('');
   const [formSharedPaid, setFormSharedPaid] = useState(false);
+
+  // Standalone Debts CRUD States
+  const [isDebtModalOpen, setIsDebtModalOpen] = useState(false);
+  const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
+  const [debtType, setDebtType] = useState<'cobrar' | 'pagar'>('cobrar');
+  const [debtPerson, setDebtPerson] = useState('');
+  const [debtAmount, setDebtAmount] = useState('');
+  const [debtDescription, setDebtDescription] = useState('');
+  const [debtDueDate, setDebtDueDate] = useState('');
+  const [debtStatus, setDebtStatus] = useState<'pendiente' | 'pagado'>('pendiente');
 
   // Calculations
   const finStats = calculateFinances(transactions, settings.monthlyBudget);
@@ -157,6 +180,79 @@ export const Finanzas: React.FC = () => {
     }
   };
 
+  // Standalone Debts CRUD Handlers
+  const openAddDebtModal = (type: 'cobrar' | 'pagar') => {
+    setEditingDebt(null);
+    setDebtType(type);
+    setDebtPerson('');
+    setDebtAmount('');
+    setDebtDescription('');
+    setDebtDueDate(new Date().toISOString().split('T')[0]);
+    setDebtStatus('pendiente');
+    setIsDebtModalOpen(true);
+  };
+
+  const openEditDebtModal = (debt: Debt) => {
+    setEditingDebt(debt);
+    setDebtType(debt.type);
+    setDebtPerson(debt.person);
+    setDebtAmount(debt.amount.toString());
+    setDebtDescription(debt.description);
+    setDebtDueDate(debt.dueDate || '');
+    setDebtStatus(debt.status);
+    setIsDebtModalOpen(true);
+  };
+
+  const handleDebtSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!debtAmount || isNaN(Number(debtAmount)) || !debtPerson.trim()) return;
+
+    const debtData = {
+      type: debtType,
+      person: debtPerson.trim(),
+      amount: Number(debtAmount),
+      description: debtDescription.trim(),
+      dueDate: debtDueDate || undefined,
+      status: debtStatus,
+      createdAt: editingDebt ? editingDebt.createdAt : new Date().toISOString().split('T')[0]
+    };
+
+    if (editingDebt) {
+      updateDebt({ ...debtData, id: editingDebt.id });
+    } else {
+      addDebt(debtData);
+    }
+    setIsDebtModalOpen(false);
+  };
+
+  const handleSettleDebt = (debt: Debt) => {
+    const updatedDebt: Debt = {
+      ...debt,
+      status: 'pagado'
+    };
+    updateDebt(updatedDebt);
+
+    const actionLabel = debt.type === 'cobrar' ? 'un ingreso' : 'un egreso/gasto';
+    if (confirm(`¿Deseas registrar este cobro/pago como ${actionLabel} en tu libro de movimientos diarios?`)) {
+      addTransaction({
+        date: new Date().toISOString().split('T')[0],
+        type: debt.type === 'cobrar' ? 'ingreso' : 'gasto',
+        category: debt.type === 'cobrar' ? 'Ingreso extra' : (settings.customCategories[5] || 'Otros egresos'),
+        description: `${debt.type === 'cobrar' ? 'Cobro de deuda' : 'Pago de deuda'} - ${debt.person} (${debt.description})`,
+        amount: debt.amount,
+        paymentMethod: 'Efectivo',
+        status: 'pagado',
+        account: settings.customAccounts?.[0] || 'General'
+      });
+    }
+  };
+
+  const handleDeleteDebt = (id: string) => {
+    if (confirm('¿Estás segura de que quieres eliminar esta cuenta/deuda?')) {
+      deleteDebt(id);
+    }
+  };
+
   // Filter Logic
   const filteredTransactions = transactions.filter(tx => {
     const matchesType = filterType === 'all' || tx.type === filterType;
@@ -232,9 +328,19 @@ export const Finanzas: React.FC = () => {
         >
           Proyección del Mes
         </button>
+        <button
+          onClick={() => setActiveSubTab('debts')}
+          className={`px-5 py-2 rounded-xl font-bold transition-all ${
+            activeSubTab === 'debts'
+              ? styles.cardPillActive
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-semibold'
+          }`}
+        >
+          Deudas y Cuentas
+        </button>
       </div>
 
-      {activeSubTab === 'ledger' ? (
+      {activeSubTab === 'ledger' && (
         <>
           {/* Alarms Bar if Triggered */}
           {finStats.alertTriggered && (
@@ -496,7 +602,9 @@ export const Finanzas: React.FC = () => {
             </div>
           </div>
         </>
-      ) : (
+      )}
+
+      {activeSubTab === 'projection' && (
         /* PROJECTION VIEW SUB TAB */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Form to enter Projection Settings */}
@@ -634,6 +742,363 @@ export const Finanzas: React.FC = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === 'debts' && (
+        <div className="space-y-6">
+          {/* Debts Summary Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Total to collect */}
+            <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-premium flex items-center gap-4">
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Cuentas por Cobrar (Pendiente)</p>
+                <h4 className="text-lg font-black text-emerald-600 mt-1">
+                  {formatCOP(debts.filter(d => d.type === 'cobrar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0))}
+                </h4>
+              </div>
+            </div>
+
+            {/* Total to pay */}
+            <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-premium flex items-center gap-4">
+              <div className="p-3 bg-rose-50 text-rose-50 rounded-xl">
+                <TrendingDown className="w-6 h-6" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Cuentas por Pagar (Pendiente)</p>
+                <h4 className="text-lg font-black text-rose-50 mt-1">
+                  {formatCOP(debts.filter(d => d.type === 'pagar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0))}
+                </h4>
+              </div>
+            </div>
+
+            {/* Net balance */}
+            {(() => {
+              const toCollect = debts.filter(d => d.type === 'cobrar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0);
+              const toPay = debts.filter(d => d.type === 'pagar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0);
+              const netBalance = toCollect - toPay;
+              const isPositive = netBalance >= 0;
+              return (
+                <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-premium flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-50'}`}>
+                    <DollarSign className="w-6 h-6" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Balance de Deudas Neto</p>
+                    <h4 className={`text-lg font-black mt-1 ${isPositive ? 'text-emerald-600' : 'text-rose-500'}`}>
+                      {isPositive ? '+' : ''} {formatCOP(netBalance)}
+                    </h4>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Lists Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
+            {/* 1. Accounts Receivable List */}
+            <div className="glass-card p-6 bg-white space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Cuentas por Cobrar (A mi favor)</h3>
+                  <p className="text-[10px] text-slate-600">Dinero que has prestado o tienes pendiente de cobro.</p>
+                </div>
+                <button
+                  onClick={() => openAddDebtModal('cobrar')}
+                  className="btn-primary px-3 py-1.5 text-[10px] font-bold tracking-wider"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nuevo Cobro</span>
+                </button>
+              </div>
+
+              {/* List */}
+              <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
+                {debts.filter(d => d.type === 'cobrar').length === 0 ? (
+                  <p className="text-xs text-slate-600 italic py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    No tienes cuentas por cobrar registradas.
+                  </p>
+                ) : (
+                  debts.filter(d => d.type === 'cobrar').map(debt => (
+                    <div
+                      key={debt.id}
+                      className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                        debt.status === 'pagado'
+                          ? 'bg-slate-50/55 border-slate-200 opacity-70'
+                          : 'bg-white border-slate-150 shadow-sm hover:shadow-md'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-navy-800">{debt.person}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${
+                              debt.status === 'pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800 animate-pulse-soft'
+                            }`}>
+                              {debt.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-650 mt-1 font-semibold">{debt.description || 'Sin concepto'}</p>
+                          {debt.dueDate && (
+                            <p className="text-[9px] text-slate-600 mt-0.5 flex items-center gap-1 font-bold">
+                              <Clock className="w-3 h-3 text-slate-600" />
+                              Vence: {debt.dueDate}
+                              {debt.status === 'pendiente' && new Date(debt.dueDate) < new Date() && (
+                                <span className="text-rose-600 font-extrabold text-[8px] uppercase bg-rose-50 border border-rose-200 px-1 py-0.2 rounded">Vencido</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-sm font-black text-emerald-600">{formatCOP(debt.amount)}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center border-t border-slate-100 pt-2.5">
+                        <span className="text-[8px] font-bold text-slate-600">Creado: {debt.createdAt}</span>
+                        <div className="flex gap-2">
+                          {debt.status === 'pendiente' && (
+                            <button
+                              onClick={() => handleSettleDebt(debt)}
+                              className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Marcar como cobrado y saldado"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Saldar</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openEditDebtModal(debt)}
+                            className="p-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[9px] font-bold cursor-pointer transition-colors"
+                            title="Editar concepto o monto"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDebt(debt.id)}
+                            className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-[9px] font-bold cursor-pointer transition-colors"
+                            title="Eliminar registro"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* 2. Accounts Payable List */}
+            <div className="glass-card p-6 bg-white space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Cuentas por Pagar (Mis deudas)</h3>
+                  <p className="text-[10px] text-slate-600">Dinero que debes a personas, bancos u otras entidades.</p>
+                </div>
+                <button
+                  onClick={() => openAddDebtModal('pagar')}
+                  className="btn-primary px-3 py-1.5 text-[10px] font-bold tracking-wider"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Nueva Deuda</span>
+                </button>
+              </div>
+
+              {/* List */}
+              <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
+                {debts.filter(d => d.type === 'pagar').length === 0 ? (
+                  <p className="text-xs text-slate-600 italic py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    No tienes cuentas por pagar registradas.
+                  </p>
+                ) : (
+                  debts.filter(d => d.type === 'pagar').map(debt => (
+                    <div
+                      key={debt.id}
+                      className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                        debt.status === 'pagado'
+                          ? 'bg-slate-50/55 border-slate-200 opacity-70'
+                          : 'bg-white border-slate-150 shadow-sm hover:shadow-md'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-navy-800">{debt.person}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${
+                              debt.status === 'pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800 animate-pulse-soft'
+                            }`}>
+                              {debt.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-650 mt-1 font-semibold">{debt.description || 'Sin concepto'}</p>
+                          {debt.dueDate && (
+                            <p className="text-[9px] text-slate-600 mt-0.5 flex items-center gap-1 font-bold">
+                              <Clock className="w-3.5 h-3.5 text-slate-600" />
+                              Vence: {debt.dueDate}
+                              {debt.status === 'pendiente' && new Date(debt.dueDate) < new Date() && (
+                                <span className="text-rose-600 font-extrabold text-[8px] uppercase bg-rose-50 border border-rose-200 px-1 py-0.2 rounded">Vencido</span>
+                              )}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-sm font-black text-rose-500">{formatCOP(debt.amount)}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center border-t border-slate-100 pt-2.5">
+                        <span className="text-[8px] font-bold text-slate-600">Creado: {debt.createdAt}</span>
+                        <div className="flex gap-2">
+                          {debt.status === 'pendiente' && (
+                            <button
+                              onClick={() => handleSettleDebt(debt)}
+                              className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Marcar como pagado y saldado"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Pagar</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openEditDebtModal(debt)}
+                            className="p-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[9px] font-bold cursor-pointer transition-colors"
+                            title="Editar concepto o monto"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDebt(debt.id)}
+                            className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-[9px] font-bold cursor-pointer transition-colors"
+                            title="Eliminar registro"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Standalone Debt Modal */}
+      {isDebtModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white border border-slate-100 rounded-3xl w-full max-w-md shadow-xl overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">
+                {editingDebt ? 'Editar Cuenta/Deuda' : `Registrar Cuenta por ${debtType === 'cobrar' ? 'Cobrar' : 'Pagar'}`}
+              </h3>
+              <button 
+                onClick={() => setIsDebtModalOpen(false)} 
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-650 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleDebtSubmit} className="p-6 space-y-4 text-left">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Debt Type */}
+                <div>
+                  <label className="form-label">Tipo de Cuenta</label>
+                  <select
+                    value={debtType}
+                    onChange={(e) => setDebtType(e.target.value as 'cobrar' | 'pagar')}
+                    className="form-input"
+                    disabled={!!editingDebt}
+                  >
+                    <option value="cobrar">Por Cobrar (A mi favor)</option>
+                    <option value="pagar">Por Pagar (Mi deuda)</option>
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="form-label">Estado</label>
+                  <select
+                    value={debtStatus}
+                    onChange={(e) => setDebtStatus(e.target.value as 'pendiente' | 'pagado')}
+                    className="form-input"
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="pagado">Pagado / Saldado</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Person */}
+              <div>
+                <label className="form-label">Persona / Entidad</label>
+                <input
+                  type="text"
+                  required
+                  placeholder={debtType === 'cobrar' ? "Quién te debe (ej. Juan)..." : "A quién le debes (ej. Banco)..."}
+                  value={debtPerson}
+                  onChange={(e) => setDebtPerson(e.target.value)}
+                  className="form-input font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Amount */}
+                <div>
+                  <label className="form-label">Monto (COP)</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="Monto..."
+                    value={debtAmount}
+                    onChange={(e) => setDebtAmount(e.target.value)}
+                    className="form-input font-black text-emerald-600"
+                  />
+                </div>
+
+                {/* Due Date */}
+                <div>
+                  <label className="form-label">Fecha Límite (Opcional)</label>
+                  <input
+                    type="date"
+                    value={debtDueDate}
+                    onChange={(e) => setDebtDueDate(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="form-label">Concepto / Descripción</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Préstamo para cena, Cuota mensual..."
+                  value={debtDescription}
+                  onChange={(e) => setDebtDescription(e.target.value)}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsDebtModalOpen(false)}
+                  className="flex-1 btn-secondary text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary text-xs"
+                >
+                  {editingDebt ? 'Actualizar' : 'Guardar'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

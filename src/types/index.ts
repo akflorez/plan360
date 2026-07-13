@@ -113,3 +113,14 @@ export interface UserSettings {
   subscriptionRenewal: string; // YYYY-MM-DD
   subscriptionStatus: 'Activa' | 'Vencida';
 }
+
+export interface Debt {
+  id: string;
+  type: 'cobrar' | 'pagar'; // 'cobrar' (receivable), 'pagar' (payable)
+  person: string; // who owes me or who I owe
+  amount: number;
+  description: string;
+  dueDate?: string; // YYYY-MM-DD
+  status: 'pendiente' | 'pagado';
+  createdAt: string; // YYYY-MM-DD
+}

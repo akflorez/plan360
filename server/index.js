@@ -645,6 +645,62 @@ app.post('/api/weekend-plans', authenticateToken, async (req, res) => {
   }
 });
 
+// --- DEBTS ---
+app.get('/api/debts', authenticateToken, async (req, res) => {
+  try {
+    const result = await query('SELECT * FROM debts WHERE user_id = $1 ORDER BY created_at DESC, id DESC', [req.user.id]);
+    res.json(result.rows.map(row => ({
+      id: row.id,
+      type: row.type,
+      person: row.person,
+      amount: Number(row.amount) || 0,
+      description: row.description || '',
+      dueDate: row.due_date || '',
+      status: row.status,
+      createdAt: row.created_at
+    })));
+  } catch (err) {
+    console.error('Error fetching debts:', err);
+    res.status(500).json({ error: 'Error al obtener deudas/cuentas.' });
+  }
+});
+
+app.post('/api/debts', authenticateToken, async (req, res) => {
+  const { id, type, person, amount, description, dueDate, status, createdAt } = req.body;
+  try {
+    const exist = await query('SELECT id FROM debts WHERE id = $1 AND user_id = $2', [id, req.user.id]);
+    const dbDueDate = dueDate || '';
+    const dbDescription = description || '';
+    if (exist.rows.length > 0) {
+      await query(
+        `UPDATE debts SET type = $1, person = $2, amount = $3, description = $4, due_date = $5, status = $6, created_at = $7
+         WHERE id = $8 AND user_id = $9`,
+        [type, person, amount, dbDescription, dbDueDate, status, createdAt, id, req.user.id]
+      );
+    } else {
+      await query(
+        `INSERT INTO debts (id, user_id, type, person, amount, description, due_date, status, created_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [id, req.user.id, type, person, amount, dbDescription, dbDueDate, status, createdAt]
+      );
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving debt:', err);
+    res.status(500).json({ error: 'Error al guardar deudas/cuentas.' });
+  }
+});
+
+app.delete('/api/debts/:id', authenticateToken, async (req, res) => {
+  try {
+    await query('DELETE FROM debts WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting debt:', err);
+    res.status(500).json({ error: 'Error al eliminar deuda/cuenta.' });
+  }
+});
+
 // --- SERVING STATIC VITE BUILD IN PRODUCTION ---
 const distPath = pathModule.join(__dirname, '../dist');
 app.use(express.static(distPath));

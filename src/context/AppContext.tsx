@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Transaction, Habit, CalendarEvent, FocusPlan, FocusPlanSession, Prospect, MonthlyRoadmap, WeekendPlan, UserSettings } from '../types';
+import { Transaction, Habit, CalendarEvent, FocusPlan, FocusPlanSession, Prospect, MonthlyRoadmap, WeekendPlan, UserSettings, Debt } from '../types';
 import { 
   defaultSettings, 
   defaultTransactions, 
@@ -31,6 +31,7 @@ interface AppContextProps {
   prospects: Prospect[];
   roadmaps: MonthlyRoadmap[];
   weekendPlans: WeekendPlan[];
+  debts: Debt[];
   
   // Modifiers
   updateSettings: (newSettings: UserSettings) => void;
@@ -58,6 +59,11 @@ interface AppContextProps {
   updateRoadmapText: (monthId: number, outcome: string, notes: string) => void;
   
   saveWeekendPlan: (plan: WeekendPlan) => void;
+  
+  addDebt: (debt: Omit<Debt, 'id'>) => void;
+  updateDebt: (debt: Debt) => void;
+  deleteDebt: (id: string) => void;
+
   resetAllData: () => void;
 }
 
@@ -131,6 +137,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return val ? JSON.parse(val) : defaultWeekendPlans;
   });
 
+  const [debts, setDebts] = useState<Debt[]>(() => {
+    const val = localStorage.getItem('kari_360_debts');
+    return val ? JSON.parse(val) : [];
+  });
+
   // Sync state changes with LocalStorage (offline fallback cache)
   useEffect(() => {
     localStorage.setItem('kari_360_settings', JSON.stringify(settings));
@@ -168,6 +179,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('kari_360_weekendPlans', JSON.stringify(weekendPlans));
   }, [weekendPlans]);
 
+  useEffect(() => {
+    localStorage.setItem('kari_360_debts', JSON.stringify(debts));
+  }, [debts]);
+
   // Load database data when token is set/changed
   useEffect(() => {
     if (!token) return;
@@ -184,7 +199,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           evtsData,
           prospectsData,
           roadmapsData,
-          weekendPlansData
+          weekendPlansData,
+          debtsData
         ] = await Promise.all([
           apiFetch('/api/auth/me').catch(() => null),
           apiFetch('/api/focus-plans').catch(() => null),
@@ -194,7 +210,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           apiFetch('/api/events').catch(() => null),
           apiFetch('/api/prospects').catch(() => null),
           apiFetch('/api/roadmaps').catch(() => null),
-          apiFetch('/api/weekend-plans').catch(() => null)
+          apiFetch('/api/weekend-plans').catch(() => null),
+          apiFetch('/api/debts').catch(() => null)
         ]);
 
         if (profileData && profileData.settings) {
@@ -210,6 +227,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setRoadmaps(roadmapsData);
         }
         if (weekendPlansData) setWeekendPlans(weekendPlansData);
+        if (debtsData) setDebts(debtsData);
 
       } catch (err) {
         console.error('Error loading user database data:', err);
@@ -268,6 +286,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProspects(defaultProspects);
     setRoadmaps(defaultRoadmaps);
     setWeekendPlans(defaultWeekendPlans);
+    setDebts([]);
   };
 
   // --- DATA MODIFICATION ACTIONS ---
@@ -312,6 +331,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       apiFetch(`/api/transactions/${id}`, {
         method: 'DELETE'
       }).catch(err => console.error('Error deleting transaction from database:', err));
+    }
+  };
+
+  const addDebt = (debt: Omit<Debt, 'id'>) => {
+    const newDebt: Debt = {
+      ...debt,
+      id: `debt-${Date.now()}`
+    };
+    setDebts(prev => [newDebt, ...prev]);
+    if (token) {
+      apiFetch('/api/debts', {
+        method: 'POST',
+        body: JSON.stringify(newDebt)
+      }).catch(err => console.error('Error saving debt to database:', err));
+    }
+  };
+
+  const updateDebt = (updatedDebt: Debt) => {
+    setDebts(prev => prev.map(d => d.id === updatedDebt.id ? updatedDebt : d));
+    if (token) {
+      apiFetch('/api/debts', {
+        method: 'POST',
+        body: JSON.stringify(updatedDebt)
+      }).catch(err => console.error('Error updating debt in database:', err));
+    }
+  };
+
+  const deleteDebt = (id: string) => {
+    setDebts(prev => prev.filter(d => d.id !== id));
+    if (token) {
+      apiFetch(`/api/debts/${id}`, {
+        method: 'DELETE'
+      }).catch(err => console.error('Error deleting debt from database:', err));
     }
   };
 
@@ -520,6 +572,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProspects(defaultProspects);
     setRoadmaps(defaultRoadmaps);
     setWeekendPlans(defaultWeekendPlans);
+    setDebts([]);
     
     // Clear local storage
     localStorage.removeItem('kari_360_settings');
@@ -531,6 +584,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.removeItem('kari_360_prospects');
     localStorage.removeItem('kari_360_roadmaps');
     localStorage.removeItem('kari_360_weekendPlans');
+    localStorage.removeItem('kari_360_debts');
 
     // If authenticated, we could trigger a server reset or save default values
     if (token) {
@@ -557,6 +611,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prospects,
       roadmaps,
       weekendPlans,
+      debts,
       updateSettings,
       addTransaction,
       updateTransaction,
@@ -575,6 +630,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateRoadmapGoal,
       updateRoadmapText,
       saveWeekendPlan,
+      addDebt,
+      updateDebt,
+      deleteDebt,
       resetAllData
     }}>
       {children}
