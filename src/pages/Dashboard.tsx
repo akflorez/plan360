@@ -218,13 +218,13 @@ export const Dashboard: React.FC = () => {
               <span>Planes de Transformación a 6 Meses</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">PLAN 360</h1>
-            <p className="text-slate-300 text-sm max-w-xl">
+            <p className="text-slate-600 text-sm max-w-xl">
               Estás en el camino hacia la libertad financiera, el bilingüismo y tu máximo rendimiento deportivo. Mantén la disciplina diaria y evalúa tus progresos.
             </p>
           </div>
           <div className="flex items-center gap-4 bg-white/5 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 shrink-0">
             <div className="text-right">
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Avance Meta $4M COP</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Avance Meta $4M COP</p>
               <h4 className="text-xl font-black text-white mt-0.5">{crmStats.goalProgressPercent.toFixed(0)}%</h4>
             </div>
             <div className="w-12 h-12 rounded-full border-4 border-white/15 border-t-white flex items-center justify-center font-bold text-sm text-white">
@@ -281,11 +281,11 @@ export const Dashboard: React.FC = () => {
                 <IconRenderer name={plan.icon} className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-450 font-bold uppercase tracking-wider">{plan.name}</p>
+                <p className="text-xs text-slate-600 font-bold uppercase tracking-wider">{plan.name}</p>
                 <h4 className="text-base font-bold text-slate-800 mt-0.5">
-                  {curVal} / {plan.target} <span className="text-xs font-normal text-slate-400">{plan.unit}</span>
+                  {curVal} / {plan.target} <span className="text-xs font-normal text-slate-600">{plan.unit}</span>
                 </h4>
-                <div className="mt-2 flex justify-between text-[9px] text-slate-450 font-bold uppercase tracking-wide">
+                <div className="mt-2 flex justify-between text-[9px] text-slate-600 font-bold uppercase tracking-wide">
                   <span>Faltan {timeStats.daysLeft} días</span>
                   <span>{compPercent.toFixed(0)}%</span>
                 </div>
@@ -299,13 +299,13 @@ export const Dashboard: React.FC = () => {
 
         {focusPlans.length < 2 && (
           <div className="glass-card p-6 flex items-center gap-4 bg-white border-dashed border-slate-200">
-            <div className="p-3 bg-slate-50 text-slate-400 rounded-2xl shrink-0">
+            <div className="p-3 bg-slate-50 text-slate-600 rounded-2xl shrink-0">
               <Icons.HelpCircle className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Nuevo Enfoque</p>
+              <p className="text-xs text-slate-600 font-bold uppercase tracking-wider">Nuevo Enfoque</p>
               <h4 className="text-xs font-bold text-slate-750 mt-1">Configura más metas</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">Sigue tu progreso de forma ágil desde el panel principal.</p>
+              <p className="text-[10px] text-slate-600 mt-0.5">Sigue tu progreso de forma ágil desde el panel principal.</p>
             </div>
           </div>
         )}
@@ -316,7 +316,7 @@ export const Dashboard: React.FC = () => {
             <Target className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-slate-450 font-bold uppercase tracking-wider">Plan de 6 Meses</p>
+            <p className="text-xs text-slate-600 font-bold uppercase tracking-wider">Plan de 6 Meses</p>
             <h4 className="text-base font-bold text-slate-800 mt-0.5">{doneRoadmapGoals} de {totalRoadmapGoals} hitos</h4>
             <div className="mt-2.5">
               <ProgressBar percent={projectCompliance} height="sm" color={theme === 'masculino' ? 'purple' : 'amber'} label="Progreso general" />
@@ -332,7 +332,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-base font-bold text-slate-800">Evolución de Finanzas</h3>
-              <p className="text-xs text-slate-400">Ingresos vs Gastos acumulados</p>
+              <p className="text-xs text-slate-600">Ingresos vs Gastos acumulados</p>
             </div>
           </div>
           <div className="h-72">
@@ -366,7 +366,7 @@ export const Dashboard: React.FC = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-base font-bold text-slate-800">Hoy debo enfocarme en</h3>
-                <p className="text-xs text-slate-400">Tus 3 prioridades del día</p>
+                <p className="text-xs text-slate-600">Tus 3 prioridades del día</p>
               </div>
               <CheckCircle className={`w-5 h-5 ${styles.accentText} animate-pulse-soft`} />
             </div>
@@ -391,14 +391,14 @@ export const Dashboard: React.FC = () => {
             {/* Focus checklist */}
             <div className="mt-4 space-y-2.5">
               {focusTasks.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-6">¡No hay prioridades para hoy! Agrega una arriba.</p>
+                <p className="text-xs text-slate-600 text-center py-6">¡No hay prioridades para hoy! Agrega una arriba.</p>
               ) : (
                 focusTasks.map((task) => (
                   <div 
                     key={task.id} 
                     className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-all ${
                       task.done 
-                        ? 'bg-slate-50/70 border-slate-100/50 line-through text-slate-400' 
+                        ? 'bg-slate-50/70 border-slate-100/50 line-through text-slate-600' 
                         : 'bg-white border-slate-100 text-slate-700 shadow-sm hover:border-slate-200'
                     }`}
                   >
@@ -425,7 +425,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
             <span>Completadas</span>
             <span className="font-bold text-slate-800">
               {focusTasks.filter(t => t.done).length} de {focusTasks.length}
@@ -440,11 +440,11 @@ export const Dashboard: React.FC = () => {
         <div className="glass-card p-6 space-y-4 bg-white">
           <div>
             <h3 className="text-base font-bold text-slate-800">Gastos por Categoría</h3>
-            <p className="text-xs text-slate-400">Distribución de egresos mensuales</p>
+            <p className="text-xs text-slate-600">Distribución de egresos mensuales</p>
           </div>
           <div className="h-64 flex flex-col md:flex-row items-center justify-center gap-4">
             {categoryChartData.length === 0 ? (
-              <p className="text-xs text-slate-400 py-12">No hay gastos registrados este mes.</p>
+              <p className="text-xs text-slate-600 py-12">No hay gastos registrados este mes.</p>
             ) : (
               <>
                 <div className="w-full md:w-1/2 h-full">
@@ -490,7 +490,7 @@ export const Dashboard: React.FC = () => {
         <div className="glass-card p-6 space-y-4 bg-white">
           <div>
             <h3 className="text-base font-bold text-slate-800">Cumplimiento de Hábitos</h3>
-            <p className="text-xs text-slate-400">Porcentaje de éxito histórico</p>
+            <p className="text-xs text-slate-600">Porcentaje de éxito histórico</p>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">

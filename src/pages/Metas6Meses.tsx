@@ -52,7 +52,7 @@ export const Metas6Meses: React.FC = () => {
         </div>
         <div className="text-left">
           <h2 className="text-base font-bold text-navy-800">Hoja de Ruta a 6 Meses</h2>
-          <p className="text-xs text-slate-400">Progreso estructurado mes a mes para cumplir tus metas de inglés, deporte y finanzas.</p>
+          <p className="text-xs text-slate-600">Progreso estructurado mes a mes para cumplir tus metas de inglés, deporte y finanzas.</p>
         </div>
       </div>
 
@@ -102,12 +102,12 @@ export const Metas6Meses: React.FC = () => {
                       ? 'bg-emerald-50 text-emerald-700' 
                       : progressPercent > 0 
                       ? 'bg-navy-50 text-navy-800' 
-                      : 'bg-slate-100 text-slate-400'
+                      : 'bg-slate-100 text-slate-600'
                   }`}>
                     {progressPercent === 100 ? 'Completado' : progressPercent > 0 ? 'En curso' : 'Pendiente'}
                   </span>
                   
-                  {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+                  {isExpanded ? <ChevronUp className="w-5 h-5 text-slate-600" /> : <ChevronDown className="w-5 h-5 text-slate-600" />}
                 </div>
               </div>
 
@@ -116,7 +116,7 @@ export const Metas6Meses: React.FC = () => {
                 <div className="p-6 border-t border-slate-100 space-y-6 text-left animate-pulse-soft-[0.1s]">
                   {/* Objectives Checkbox checklist */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                       Objetivos del Mes
                     </h4>
@@ -128,11 +128,11 @@ export const Metas6Meses: React.FC = () => {
                           onClick={() => handleGoalToggle(month.id, goal.id, goal.done)}
                           className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
                             goal.done 
-                              ? 'bg-emerald-50/50 border-emerald-100 text-slate-400 line-through' 
+                              ? 'bg-emerald-50/50 border-emerald-100 text-slate-600 line-through' 
                               : 'bg-white border-slate-100 hover:border-slate-200 text-slate-700 font-medium'
                           }`}
                         >
-                          <span className={`shrink-0 ${goal.done ? 'text-emerald-500' : 'text-slate-300'}`}>
+                          <span className={`shrink-0 ${goal.done ? 'text-emerald-500' : 'text-slate-600'}`}>
                             {goal.done ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
                           </span>
                           <span className="text-xs">{goal.text}</span>

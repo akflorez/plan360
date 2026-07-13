@@ -1,6 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-navy-50: #eef2f6;
+  --color-navy-100: #dce4ee;
+  --color-navy-200: #bdcde0;
+  --color-navy-300: #8ea9cc;
+  --color-navy-400: #597fb3;
+  --color-navy-500: #3b5f97;
+  --color-navy-600: #2d4a7a;
+  --color-navy-700: #243b61;
+  --color-navy-800: #0b1b3d;
+  --color-navy-900: #0d1933;
+  --color-navy-950: #080f21;
+
+  --color-aqua-50: #ecfeff;
+  --color-aqua-100: #cffafe;
+  --color-aqua-200: #a5f3fc;
+  --color-aqua-300: #67e8f9;
+  --color-aqua-400: #22d3ee;
+  --color-aqua-500: #06b6d4;
+  --color-aqua-600: #0891b2;
+  --color-aqua-700: #0e7490;
+  --color-aqua-800: #155e75;
+  --color-aqua-900: #164e63;
+  --color-aqua-950: #083344;
+
+  --color-purple-650: #701a75;
+  --color-teal-650: #0f766e;
+}
+
 /* CSS Theme Variables */
 :root {
   --color-brand: #0B1B3D;
@@ -103,7 +132,7 @@ body {
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   border-radius: 0.75rem;
-  color: #64748b;
+  color: #475569;
   font-weight: 500;
   transition: all 0.2s;
 }
@@ -146,7 +175,7 @@ body {
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.375rem;

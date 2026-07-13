@@ -140,7 +140,7 @@ export const FinesDeSemana: React.FC = () => {
           </div>
           <div className="text-left">
             <h2 className="text-base font-bold text-navy-800">Organizador del Fin de Semana</h2>
-            <p className="text-xs text-slate-400">Planifica tus sábados y domingos para equilibrar descanso, deporte y proyecto.</p>
+            <p className="text-xs text-slate-600">Planifica tus sábados y domingos para equilibrar descanso, deporte y proyecto.</p>
           </div>
         </div>
 
@@ -169,7 +169,7 @@ export const FinesDeSemana: React.FC = () => {
           <div className="glass-card p-6 bg-white space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Plan del Sábado</h3>
-              <span className="text-[10px] text-slate-400 font-bold uppercase">Deporte & Foco</span>
+              <span className="text-[10px] text-slate-600 font-bold uppercase">Deporte & Foco</span>
             </div>
 
             {/* Quick Add Task */}
@@ -192,25 +192,25 @@ export const FinesDeSemana: React.FC = () => {
             {/* Checklist */}
             <div className="space-y-2">
               {plan.saturday.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-4">No hay actividades registradas.</p>
+                <p className="text-xs text-slate-600 text-center py-4">No hay actividades registradas.</p>
               ) : (
                 plan.saturday.map(task => (
                   <div 
                     key={task.id}
                     className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                      task.done ? 'bg-slate-50/70 border-slate-100/50 text-slate-400 line-through' : 'bg-white border-slate-100 text-slate-700 font-medium'
+                      task.done ? 'bg-slate-50/70 border-slate-100/50 text-slate-600 line-through' : 'bg-white border-slate-100 text-slate-700 font-medium'
                     }`}
                   >
                     <div 
                       onClick={() => toggleTask('saturday', task.id)}
                       className="flex items-center gap-3 cursor-pointer flex-1"
                     >
-                      {task.done ? <CheckSquare className="w-4 h-4 text-emerald-500" /> : <Square className="w-4 h-4 text-slate-300" />}
+                      {task.done ? <CheckSquare className="w-4 h-4 text-emerald-500" /> : <Square className="w-4 h-4 text-slate-600" />}
                       <span className="text-xs">{task.text}</span>
                     </div>
                     <button 
                       onClick={() => deleteTask('saturday', task.id)}
-                      className="text-slate-300 hover:text-rose-500 transition-colors p-1"
+                      className="text-slate-600 hover:text-rose-500 transition-colors p-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -224,7 +224,7 @@ export const FinesDeSemana: React.FC = () => {
           <div className="glass-card p-6 bg-white space-y-4">
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Plan del Domingo</h3>
-              <span className="text-[10px] text-slate-400 font-bold uppercase">Orden & Relax</span>
+              <span className="text-[10px] text-slate-600 font-bold uppercase">Orden & Relax</span>
             </div>
 
             {/* Quick Add Task */}
@@ -247,25 +247,25 @@ export const FinesDeSemana: React.FC = () => {
             {/* Checklist */}
             <div className="space-y-2">
               {plan.sunday.length === 0 ? (
-                <p className="text-xs text-slate-400 text-center py-4">No hay actividades registradas.</p>
+                <p className="text-xs text-slate-600 text-center py-4">No hay actividades registradas.</p>
               ) : (
                 plan.sunday.map(task => (
                   <div 
                     key={task.id}
                     className={`p-3 rounded-xl border flex items-center justify-between gap-3 ${
-                      task.done ? 'bg-slate-50/70 border-slate-100/50 text-slate-400 line-through' : 'bg-white border-slate-100 text-slate-700 font-medium'
+                      task.done ? 'bg-slate-50/70 border-slate-100/50 text-slate-600 line-through' : 'bg-white border-slate-100 text-slate-700 font-medium'
                     }`}
                   >
                     <div 
                       onClick={() => toggleTask('sunday', task.id)}
                       className="flex items-center gap-3 cursor-pointer flex-1"
                     >
-                      {task.done ? <CheckSquare className="w-4 h-4 text-emerald-500" /> : <Square className="w-4 h-4 text-slate-300" />}
+                      {task.done ? <CheckSquare className="w-4 h-4 text-emerald-500" /> : <Square className="w-4 h-4 text-slate-600" />}
                       <span className="text-xs">{task.text}</span>
                     </div>
                     <button 
                       onClick={() => deleteTask('sunday', task.id)}
-                      className="text-slate-300 hover:text-rose-500 transition-colors p-1"
+                      className="text-slate-600 hover:text-rose-500 transition-colors p-1"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -283,7 +283,7 @@ export const FinesDeSemana: React.FC = () => {
               <Smile className="w-4 h-4 text-emerald-500" />
               Reflexión Semanal
             </h3>
-            <span className="text-[10px] text-slate-400 font-bold uppercase">Autoevaluación</span>
+            <span className="text-[10px] text-slate-600 font-bold uppercase">Autoevaluación</span>
           </div>
 
           <div className="space-y-4 text-left">
@@ -333,7 +333,7 @@ export const FinesDeSemana: React.FC = () => {
               />
             </div>
             <div>
-              <label className="form-label flex items-center gap-1"><HelpCircle className="w-3.5 h-3.5 text-slate-400" /> ¿Qué necesito organizar para la próxima semana?</label>
+              <label className="form-label flex items-center gap-1"><HelpCircle className="w-3.5 h-3.5 text-slate-600" /> ¿Qué necesito organizar para la próxima semana?</label>
               <textarea
                 value={plan.reflection.nextWeekOrg}
                 onChange={(e) => handleReflectionChange('nextWeekOrg', e.target.value)}

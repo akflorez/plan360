@@ -201,31 +201,31 @@ export const Finanzas: React.FC = () => {
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Total Ingresos</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Total Ingresos</p>
               <h4 className="text-sm font-bold text-emerald-600 mt-1">{formatCOP(finStats.totalIncomes)}</h4>
             </div>
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Total Gastos</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Total Gastos</p>
               <h4 className="text-sm font-bold text-rose-500 mt-1">{formatCOP(finStats.totalExpenses)}</h4>
             </div>
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Egresos Fijos</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Egresos Fijos</p>
               <h4 className="text-sm font-bold text-slate-700 mt-1">{formatCOP(finStats.fixedExpenses)}</h4>
             </div>
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Egresos Variables</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Egresos Variables</p>
               <h4 className="text-sm font-bold text-slate-700 mt-1">{formatCOP(finStats.variableExpenses)}</h4>
             </div>
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Disponible</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Disponible</p>
               <h4 className="text-sm font-bold text-navy-800 mt-1">{formatCOP(finStats.available)}</h4>
             </div>
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Tasa Ahorro</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Tasa Ahorro</p>
               <h4 className="text-sm font-bold text-purple-600 mt-1">{finStats.savingsRate.toFixed(0)}%</h4>
             </div>
             <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center col-span-2 md:col-span-1">
-              <p className="text-[10px] text-slate-400 font-bold uppercase">Mayor Gasto</p>
+              <p className="text-[10px] text-slate-600 font-bold uppercase">Mayor Gasto</p>
               <h4 className="text-xs font-bold text-amber-500 truncate mt-1" title={finStats.highestCategory.category}>
                 {finStats.highestCategory.category}
               </h4>
@@ -237,7 +237,7 @@ export const Finanzas: React.FC = () => {
             <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
               {/* Search */}
               <div className="relative flex-1 min-w-[200px] md:flex-none">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-600" />
                 <input
                   type="text"
                   placeholder="Buscar descripción..."
@@ -300,7 +300,7 @@ export const Finanzas: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-100">
+                  <tr className="bg-slate-50 text-slate-600 text-[10px] font-bold uppercase tracking-wider border-b border-slate-100">
                     <th className="py-4 px-6">Fecha</th>
                     <th className="py-4 px-6">Tipo</th>
                     <th className="py-4 px-6">Categoría</th>
@@ -314,7 +314,7 @@ export const Finanzas: React.FC = () => {
                 <tbody className="divide-y divide-slate-100 text-xs text-slate-600">
                   {filteredTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-400 font-medium bg-white">
+                      <td colSpan={8} className="py-12 text-center text-slate-600 font-medium bg-white">
                         Ningún movimiento coincide con los filtros aplicados.
                       </td>
                     </tr>
@@ -335,7 +335,7 @@ export const Finanzas: React.FC = () => {
                         </td>
                         <td className="py-4 px-6 font-semibold text-navy-800">{tx.category}</td>
                         <td className="py-4 px-6 max-w-xs truncate">{tx.description || 'Sin descripción'}</td>
-                        <td className="py-4 px-6 text-slate-400 whitespace-nowrap">{tx.paymentMethod}</td>
+                        <td className="py-4 px-6 text-slate-600 whitespace-nowrap">{tx.paymentMethod}</td>
                         <td className="py-4 px-6 text-center whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
                             tx.status === 'pagado' ? 'bg-emerald-50 text-emerald-700' :
@@ -357,13 +357,13 @@ export const Finanzas: React.FC = () => {
                           <div className="flex items-center justify-center gap-2">
                             <button
                               onClick={() => openEditModal(tx)}
-                              className="p-1.5 text-slate-400 hover:text-navy-800 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-600 hover:text-navy-800 hover:bg-slate-100 rounded-lg transition-colors"
                             >
                               <Edit3 className="w-4.5 h-4.5" />
                             </button>
                             <button
                               onClick={() => handleDelete(tx.id)}
-                              className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-slate-100 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-600 hover:text-rose-500 hover:bg-slate-100 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4.5 h-4.5" />
                             </button>
@@ -384,7 +384,7 @@ export const Finanzas: React.FC = () => {
           <div className="glass-card p-6 space-y-6">
             <div>
               <h3 className="text-base font-bold text-navy-800">Parámetros Proyectados</h3>
-              <p className="text-xs text-slate-400">Estima tus números esperados para este mes.</p>
+              <p className="text-xs text-slate-600">Estima tus números esperados para este mes.</p>
             </div>
 
             <div className="space-y-4">
@@ -458,7 +458,7 @@ export const Finanzas: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Money Projected Card */}
               <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-premium">
-                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Flujo de Caja Real vs Proyectado</h4>
+                <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Flujo de Caja Real vs Proyectado</h4>
                 <div className="mt-4 space-y-3.5">
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500 font-medium">Ingreso Real:</span>
@@ -469,7 +469,7 @@ export const Finanzas: React.FC = () => {
                     <span className="text-sm font-bold text-slate-700">{formatCOP(projIncome)}</span>
                   </div>
                   <div className="flex justify-between items-center border-t border-slate-100 pt-2 text-xs">
-                    <span className="text-slate-400 font-medium">Diferencia:</span>
+                    <span className="text-slate-600 font-medium">Diferencia:</span>
                     <span className={`font-bold ${finStats.totalIncomes - projIncome >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
                       {finStats.totalIncomes - projIncome >= 0 ? '+' : ''} {formatCOP(finStats.totalIncomes - projIncome)}
                     </span>
@@ -479,7 +479,7 @@ export const Finanzas: React.FC = () => {
 
               {/* Expense comparison Card */}
               <div className="bg-white border border-slate-100 p-6 rounded-2xl shadow-premium">
-                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Egresos Reales vs Estimados</h4>
+                <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Egresos Reales vs Estimados</h4>
                 <div className="mt-4 space-y-3.5">
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-500 font-medium">Gasto Real:</span>
@@ -490,7 +490,7 @@ export const Finanzas: React.FC = () => {
                     <span className="text-sm font-bold text-slate-700">{formatCOP(projFixed + projVar)}</span>
                   </div>
                   <div className="flex justify-between items-center border-t border-slate-100 pt-2 text-xs">
-                    <span className="text-slate-400 font-medium">Diferencia (Presupuestal):</span>
+                    <span className="text-slate-600 font-medium">Diferencia (Presupuestal):</span>
                     <span className={`font-bold ${((projFixed + projVar) - finStats.totalExpenses) >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
                       {((projFixed + projVar) - finStats.totalExpenses) >= 0 ? 'Ahorro' : 'Exceso'}: {formatCOP(Math.abs((projFixed + projVar) - finStats.totalExpenses))}
                     </span>
@@ -503,11 +503,11 @@ export const Finanzas: React.FC = () => {
             <div className="p-6 rounded-2xl bg-navy-800 text-white shadow-premium relative overflow-hidden">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_120%,#06b6d4,transparent_40%)]" />
               <div className="relative z-10">
-                <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Proyección de Disponible Fin de Mes</h4>
+                <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Proyección de Disponible Fin de Mes</h4>
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-black text-white">{formatCOP(finStats.projectionEndMonth)}</h2>
-                    <p className="text-[10px] text-slate-400 mt-1">Calculado: ingresos actuales - todos los movimientos de salida del mes</p>
+                    <p className="text-[10px] text-slate-600 mt-1">Calculado: ingresos actuales - todos los movimientos de salida del mes</p>
                   </div>
                   <div className="px-4 py-2 bg-white/10 rounded-xl text-xs font-bold border border-white/10">
                     Ahorro acumulado: {formatCOP(finStats.savings)}
@@ -529,7 +529,7 @@ export const Finanzas: React.FC = () => {
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

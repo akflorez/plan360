@@ -275,7 +275,7 @@ export const FocusPlans: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl font-extrabold text-slate-800">Mis Enfoques y Metas</h2>
-          <p className="text-xs text-slate-400">Diseña planes personalizados y registra tus avances de forma dinámica.</p>
+          <p className="text-xs text-slate-600">Diseña planes personalizados y registra tus avances de forma dinámica.</p>
         </div>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
@@ -306,7 +306,7 @@ export const FocusPlans: React.FC = () => {
                       </div>
                       <div className="text-left">
                         <h5 className="text-xs font-bold text-slate-850">{p.name}</h5>
-                        <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{p.description}</p>
+                        <p className="text-[10px] text-slate-600 mt-0.5 leading-tight">{p.description}</p>
                       </div>
                     </div>
                     <button
@@ -457,7 +457,7 @@ export const FocusPlans: React.FC = () => {
           <div className="xl:col-span-2 p-12 bg-white border border-slate-100 rounded-3xl text-center shadow-sm space-y-3">
             <HelpCircle className="w-12 h-12 text-slate-350 mx-auto" />
             <h4 className="text-sm font-bold text-slate-700">No tienes enfoques activos</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            <p className="text-xs text-slate-600 max-w-sm mx-auto">
               Comienza abriendo el panel de arriba para instanciar plantillas o configurar tus propias metas personales.
             </p>
             <button 
@@ -509,7 +509,7 @@ export const FocusPlans: React.FC = () => {
                 <div className="space-y-4 text-left">
                   {/* Weekly Progress Bar */}
                   <div>
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                       <span>Progreso de esta semana</span>
                       <span className={styles.accentText}>{curVal} / {plan.target} {plan.unit} ({compPercent.toFixed(0)}%)</span>
                     </div>
@@ -523,7 +523,7 @@ export const FocusPlans: React.FC = () => {
 
                   {/* Timeframe Progress Bar */}
                   <div>
-                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                       <span>Plazo: Finaliza el {timeStats.deadlineStr}</span>
                       <span className="text-slate-500 font-bold">Faltan {timeStats.daysLeft} días</span>
                     </div>
@@ -543,7 +543,7 @@ export const FocusPlans: React.FC = () => {
                     onSubmit={(e) => handleLogProgress(plan.id, e)}
                     className="md:col-span-3 space-y-3 text-left"
                   >
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
                       <Sparkles className={`w-3.5 h-3.5 ${styles.accentText}`} />
                       <span>Registrar Avance</span>
                     </h4>
@@ -584,13 +584,13 @@ export const FocusPlans: React.FC = () => {
 
                   {/* Logs list ledger (2 cols) */}
                   <div className="md:col-span-2 space-y-2 text-left">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <h4 className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-slate-600" />
                       <span>Log Reciente</span>
                     </h4>
                     <div className="space-y-2 overflow-y-auto max-h-[145px] pr-1">
                       {focusSessions.filter(s => s.planId === plan.id).length === 0 ? (
-                        <p className="text-[10px] text-slate-400 text-center py-6 italic">Sin registros aún.</p>
+                        <p className="text-[10px] text-slate-600 text-center py-6 italic">Sin registros aún.</p>
                       ) : (
                         focusSessions
                           .filter(s => s.planId === plan.id)
@@ -603,15 +603,15 @@ export const FocusPlans: React.FC = () => {
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1">
                                   <span className="text-[9px] font-bold text-slate-700 truncate max-w-[80px]">{session.details}</span>
-                                  <span className="text-[8px] text-slate-400">{session.date.split('-').slice(1).join('/')}</span>
+                                  <span className="text-[8px] text-slate-600">{session.date.split('-').slice(1).join('/')}</span>
                                 </div>
-                                {session.notes && <p className="text-[8px] text-slate-450 italic truncate max-w-[120px]">"{session.notes}"</p>}
+                                {session.notes && <p className="text-[8px] text-slate-600 italic truncate max-w-[120px]">"{session.notes}"</p>}
                               </div>
                               <div className="flex items-center gap-1 shrink-0">
                                 <span className={`text-[10px] font-black ${styles.accentText}`}>+{session.value}</span>
                                 <button
                                   onClick={() => deleteFocusSession(session.id)}
-                                  className="text-slate-300 hover:text-rose-500 p-0.5 rounded transition-colors"
+                                  className="text-slate-600 hover:text-rose-500 p-0.5 rounded transition-colors"
                                   title="Eliminar log"
                                 >
                                   <Trash2 className="w-3 h-3" />

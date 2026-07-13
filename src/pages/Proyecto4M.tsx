@@ -165,7 +165,7 @@ export const Proyecto4M: React.FC = () => {
               <h2 className="text-2xl font-black mt-1">Generar {formatCurrency(settings.extraIncomeGoal)} adicionales al mes</h2>
             </div>
             <div className="bg-white/10 px-4 py-2.5 rounded-xl border border-white/10 backdrop-blur-sm text-right shrink-0">
-              <span className="text-[10px] text-slate-400 font-bold block">BRECHA PARA LA META</span>
+              <span className="text-[10px] text-slate-600 font-bold block">BRECHA PARA LA META</span>
               <span className="text-lg font-black text-emerald-300">{formatCurrency(stats.gapToGoal)}</span>
             </div>
           </div>
@@ -173,7 +173,7 @@ export const Proyecto4M: React.FC = () => {
           {/* Progress bar container */}
           <div className="space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10">
             <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-slate-300">Ingreso Extra Real Recibido</span>
+                <span className="text-slate-600">Ingreso Extra Real Recibido</span>
                 <span className="text-emerald-400">{formatCurrency(stats.extraIncomeReal)} / {formatCurrency(settings.extraIncomeGoal)}</span>
               </div>
             
@@ -185,7 +185,7 @@ export const Proyecto4M: React.FC = () => {
               />
             </div>
 
-            <div className="flex justify-between items-center text-[11px] font-semibold text-slate-400">
+            <div className="flex justify-between items-center text-[11px] font-semibold text-slate-600">
               <span>Mensaje del proceso: <span className="text-white">"{stats.motivationalMessage}"</span></span>
               <span>Progreso: {stats.goalProgressPercent.toFixed(0)}%</span>
             </div>
@@ -196,27 +196,27 @@ export const Proyecto4M: React.FC = () => {
       {/* CRM Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Total Leads</p>
+          <p className="text-[10px] text-slate-600 font-bold uppercase">Total Leads</p>
           <h4 className="text-lg font-black text-navy-800 mt-1">{stats.numProspects}</h4>
         </div>
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Contactados</p>
+          <p className="text-[10px] text-slate-600 font-bold uppercase">Contactados</p>
           <h4 className="text-lg font-bold text-slate-700 mt-1">{stats.numContacted}</h4>
         </div>
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Propuestas</p>
+          <p className="text-[10px] text-slate-600 font-bold uppercase">Propuestas</p>
           <h4 className="text-lg font-bold text-slate-700 mt-1">{stats.numProposals}</h4>
         </div>
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Ganados</p>
+          <p className="text-[10px] text-slate-600 font-bold uppercase">Ganados</p>
           <h4 className="text-lg font-bold text-emerald-600 mt-1">{stats.numWon}</h4>
         </div>
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Conversión</p>
+          <p className="text-[10px] text-slate-600 font-bold uppercase">Conversión</p>
           <h4 className="text-lg font-bold text-purple-600 mt-1">{stats.conversionRate.toFixed(0)}%</h4>
         </div>
         <div className="bg-white border border-slate-100 p-4 rounded-xl shadow-premium text-center col-span-2 md:col-span-1">
-          <p className="text-[10px] text-slate-400 font-bold uppercase">Ticket Promedio</p>
+          <p className="text-[10px] text-slate-600 font-bold uppercase">Ticket Promedio</p>
           <h4 className="text-xs font-bold text-slate-800 mt-1.5 truncate" title={formatCurrency(stats.averageValuePerClient)}>
             {formatCurrency(stats.averageValuePerClient)}
           </h4>
@@ -227,7 +227,7 @@ export const Proyecto4M: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-base font-bold text-navy-800">Tablero Kanban CRM</h3>
-          <p className="text-xs text-slate-400">Controla el avance de embudo de ventas y prospectos de Dashboards.</p>
+          <p className="text-xs text-slate-600">Controla el avance de embudo de ventas y prospectos de Dashboards.</p>
         </div>
         <button
           onClick={openAddModal}
@@ -253,7 +253,7 @@ export const Proyecto4M: React.FC = () => {
                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${col.color}`}>
                   {col.name}
                 </span>
-                <span className="text-xs text-slate-400 font-bold bg-slate-200/60 px-1.5 py-0.5 rounded-md">
+                <span className="text-xs text-slate-600 font-bold bg-slate-200/60 px-1.5 py-0.5 rounded-md">
                   {colProspects.length}
                 </span>
               </div>
@@ -261,7 +261,7 @@ export const Proyecto4M: React.FC = () => {
               {/* Column Cards */}
               <div className="flex-1 space-y-3 overflow-y-auto pr-1">
                 {colProspects.length === 0 ? (
-                  <p className="text-[10px] text-slate-400 text-center py-16">Sin contactos</p>
+                  <p className="text-[10px] text-slate-600 text-center py-16">Sin contactos</p>
                 ) : (
                   colProspects.map((p) => (
                     <div 
@@ -271,7 +271,7 @@ export const Proyecto4M: React.FC = () => {
                     >
                       <div>
                         <h4 className="text-xs font-bold text-navy-800">{p.name}</h4>
-                        <p className="text-[10px] text-slate-400 font-semibold">{p.company}</p>
+                        <p className="text-[10px] text-slate-600 font-semibold">{p.company}</p>
                       </div>
 
                       <div className="text-[10px] text-slate-500 font-medium">
@@ -289,7 +289,7 @@ export const Proyecto4M: React.FC = () => {
                               e.stopPropagation();
                               handleShiftStage(p, 'prev');
                             }}
-                            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-navy-800"
+                            className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-navy-800"
                             title="Retroceder etapa"
                           >
                             <ArrowLeft className="w-3 h-3" />
@@ -299,7 +299,7 @@ export const Proyecto4M: React.FC = () => {
                               e.stopPropagation();
                               handleShiftStage(p, 'next');
                             }}
-                            className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-navy-800"
+                            className="p-1 hover:bg-slate-100 rounded text-slate-600 hover:text-navy-800"
                             title="Avanzar etapa"
                           >
                             <ArrowRight className="w-3 h-3" />
@@ -325,7 +325,7 @@ export const Proyecto4M: React.FC = () => {
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

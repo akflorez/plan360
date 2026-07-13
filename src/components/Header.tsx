@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({ setSidebarOpen }) => {
           <h2 className="text-xl font-bold text-slate-800 tracking-tight">
             {getGreeting()}, {settings.username || 'Kari'}! ✨
           </h2>
-          <p className="hidden sm:block text-xs text-slate-400 font-semibold tracking-wide uppercase mt-0.5">
+          <p className="hidden sm:block text-xs text-slate-600 font-semibold tracking-wide uppercase mt-0.5">
             Tu enfoque crea tu realidad • Plan de 6 meses
           </p>
         </div>

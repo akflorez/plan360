@@ -25,37 +25,37 @@ export const StatCard: React.FC<StatCardProps> = ({
     navy: {
       bg: 'bg-navy-800 text-white',
       iconContainer: 'bg-white/10 text-emerald-300',
-      textMuted: 'text-slate-300',
+      textMuted: 'text-slate-600',
       border: 'border-navy-700'
     },
     emerald: {
       bg: 'bg-white text-slate-800',
       iconContainer: 'bg-emerald-50 text-emerald-600',
-      textMuted: 'text-slate-400',
+      textMuted: 'text-slate-600',
       border: 'border-slate-100'
     },
     purple: {
       bg: 'bg-white text-slate-800',
       iconContainer: 'bg-purple-50 text-purple-600',
-      textMuted: 'text-slate-400',
+      textMuted: 'text-slate-600',
       border: 'border-slate-100'
     },
     aqua: {
       bg: 'bg-white text-slate-800',
       iconContainer: 'bg-aqua-50 text-aqua-600',
-      textMuted: 'text-slate-400',
+      textMuted: 'text-slate-600',
       border: 'border-slate-100'
     },
     rose: {
       bg: 'bg-white text-slate-800',
       iconContainer: 'bg-rose-50 text-rose-600',
-      textMuted: 'text-slate-400',
+      textMuted: 'text-slate-600',
       border: 'border-slate-100'
     },
     amber: {
       bg: 'bg-white text-slate-800',
       iconContainer: 'bg-amber-50 text-amber-500',
-      textMuted: 'text-slate-400',
+      textMuted: 'text-slate-600',
       border: 'border-slate-100'
     }
   };

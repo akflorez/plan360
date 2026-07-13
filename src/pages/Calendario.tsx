@@ -231,7 +231,7 @@ export const Calendario: React.FC = () => {
       {viewMode === 'month' && (
         <div className="glass-card p-6 bg-white">
           {/* Days labels */}
-          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <div className="grid grid-cols-7 gap-2 mb-2 text-center text-[10px] font-bold text-slate-600 uppercase tracking-wider">
             <div>Lun</div>
             <div>Mar</div>
             <div>Mié</div>
@@ -277,7 +277,7 @@ export const Calendario: React.FC = () => {
                       {day}
                     </span>
                     {dayEvents.length > 0 && (
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">
+                      <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-md">
                         {dayEvents.length}
                       </span>
                     )}
@@ -296,14 +296,14 @@ export const Calendario: React.FC = () => {
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${colors.dot} ${
                             evt.status === 'realizado' ? 'ring-1 ring-white scale-[0.8]' : ''
                           }`} />
-                          <span className={evt.status === 'realizado' ? 'line-through text-slate-400 font-normal' : ''}>
+                          <span className={evt.status === 'realizado' ? 'line-through text-slate-600 font-normal' : ''}>
                             {evt.time} {evt.title}
                           </span>
                         </div>
                       );
                     })}
                     {dayEvents.length > 3 && (
-                      <div className="text-[8px] font-bold text-slate-400 text-center">
+                      <div className="text-[8px] font-bold text-slate-600 text-center">
                         + {dayEvents.length - 3} más
                       </div>
                     )}
@@ -333,7 +333,7 @@ export const Calendario: React.FC = () => {
               >
                 <div className="border-b border-slate-100 pb-2 mb-3 flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase">{dayName}</span>
+                    <span className="text-xs font-bold text-slate-600 uppercase">{dayName}</span>
                     <h4 className="text-lg font-black text-navy-800 mt-0.5">{dayNum}</h4>
                   </div>
                   <button 
@@ -341,7 +341,7 @@ export const Calendario: React.FC = () => {
                       setFormDate(formattedDate);
                       openAddModal(dayNum);
                     }}
-                    className="p-1 text-slate-400 hover:text-navy-800 bg-slate-50 hover:bg-slate-100 rounded-lg transition-all"
+                    className="p-1 text-slate-600 hover:text-navy-800 bg-slate-50 hover:bg-slate-100 rounded-lg transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -349,7 +349,7 @@ export const Calendario: React.FC = () => {
 
                 <div className="flex-1 space-y-2 overflow-y-auto">
                   {dayEvents.length === 0 ? (
-                    <p className="text-[10px] text-slate-400 text-center py-12">Sin tareas</p>
+                    <p className="text-[10px] text-slate-600 text-center py-12">Sin tareas</p>
                   ) : (
                     dayEvents.map(evt => {
                       const colors = activityColors[evt.activityType];
@@ -363,16 +363,16 @@ export const Calendario: React.FC = () => {
                             <span className="font-bold truncate max-w-[85px]">{evt.time}</span>
                             <button
                               onClick={(e) => toggleEventStatus(evt, e)}
-                              className="text-slate-400 hover:text-navy-800"
+                              className="text-slate-600 hover:text-navy-800"
                             >
                               {evt.status === 'realizado' ? (
                                 <CheckSquare className="w-3.5 h-3.5 text-emerald-500" />
                               ) : (
-                                <Square className="w-3.5 h-3.5 text-slate-300" />
+                                <Square className="w-3.5 h-3.5 text-slate-600" />
                               )}
                             </button>
                           </div>
-                          <p className={`font-bold leading-tight ${evt.status === 'realizado' ? 'line-through text-slate-400 font-normal' : ''}`}>
+                          <p className={`font-bold leading-tight ${evt.status === 'realizado' ? 'line-through text-slate-600 font-normal' : ''}`}>
                             {evt.title}
                           </p>
                         </div>
@@ -394,7 +394,7 @@ export const Calendario: React.FC = () => {
           </div>
           <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-2">
             {events.length === 0 ? (
-              <p className="text-xs text-slate-400 text-center py-12">No hay eventos guardados en el calendario.</p>
+              <p className="text-xs text-slate-600 text-center py-12">No hay eventos guardados en el calendario.</p>
             ) : (
               [...events]
                 .sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime())
@@ -409,19 +409,19 @@ export const Calendario: React.FC = () => {
                       <div className="flex items-center gap-3.5 min-w-0">
                         <button
                           onClick={(e) => toggleEventStatus(evt, e)}
-                          className="shrink-0 text-slate-400 hover:text-navy-800"
+                          className="shrink-0 text-slate-600 hover:text-navy-800"
                         >
                           {evt.status === 'realizado' ? (
                             <CheckSquare className="w-5 h-5 text-emerald-500" />
                           ) : (
-                            <Square className="w-5 h-5 text-slate-300" />
+                            <Square className="w-5 h-5 text-slate-600" />
                           )}
                         </button>
                         <div className="min-w-0">
-                          <h4 className={`text-xs font-bold text-slate-800 ${evt.status === 'realizado' ? 'line-through text-slate-400' : ''}`}>
+                          <h4 className={`text-xs font-bold text-slate-800 ${evt.status === 'realizado' ? 'line-through text-slate-600' : ''}`}>
                             {evt.title}
                           </h4>
-                          <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] text-slate-400 font-medium">
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-[10px] text-slate-600 font-medium">
                             <span className="font-bold text-slate-600 bg-slate-100/60 px-1.5 py-0.5 rounded-md">{evt.date}</span>
                             <span>•</span>
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{evt.time}</span>
@@ -434,7 +434,7 @@ export const Calendario: React.FC = () => {
                       </div>
                       <button 
                         onClick={(e) => handleDelete(evt.id, e)}
-                        className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-white/50 transition-colors"
+                        className="p-1.5 text-slate-600 hover:text-rose-500 rounded-lg hover:bg-white/50 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -456,7 +456,7 @@ export const Calendario: React.FC = () => {
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)} 
-                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-600 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>

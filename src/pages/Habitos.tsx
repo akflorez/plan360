@@ -72,9 +72,9 @@ export const Habitos: React.FC = () => {
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Cumplimiento General</p>
+            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Cumplimiento General</p>
             <h4 className="text-xl font-black text-navy-800 mt-1">{stats.overallCompliance.toFixed(0)}%</h4>
-            <p className="text-[10px] text-slate-400 mt-0.5">Promedio de todos tus hábitos</p>
+            <p className="text-[10px] text-slate-600 mt-0.5">Promedio de todos tus hábitos</p>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ export const Habitos: React.FC = () => {
             <TrendingUp className="w-6 h-6" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Hábito Líder</p>
+            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Hábito Líder</p>
             <h4 className="text-sm font-bold text-navy-800 truncate mt-1" title={stats.mostCompleted}>
               {stats.mostCompleted}
             </h4>
@@ -98,7 +98,7 @@ export const Habitos: React.FC = () => {
             <AlertCircle className="w-6 h-6" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Hábito Descuidado</p>
+            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Hábito Descuidado</p>
             <h4 className="text-sm font-bold text-navy-800 truncate mt-1" title={stats.leastCompleted}>
               {stats.leastCompleted}
             </h4>
@@ -112,9 +112,9 @@ export const Habitos: React.FC = () => {
             <Flame className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Racha Inglés</p>
+            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Racha Inglés</p>
             <h4 className="text-xl font-black text-navy-800 mt-1">{stats.streaks['h-1'] || 0} Días</h4>
-            <p className="text-[10px] text-slate-400 mt-0.5">¡No rompas la cadena de estudio!</p>
+            <p className="text-[10px] text-slate-600 mt-0.5">¡No rompas la cadena de estudio!</p>
           </div>
         </div>
       </div>
@@ -126,7 +126,7 @@ export const Habitos: React.FC = () => {
           <div className="flex justify-between items-center pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-base font-bold text-navy-800">Control de Hábitos Diarios</h3>
-              <p className="text-xs text-slate-400">Marca los objetivos cumplidos para el día seleccionado.</p>
+              <p className="text-xs text-slate-600">Marca los objetivos cumplidos para el día seleccionado.</p>
             </div>
             {/* Date Switcher */}
             <div className="flex items-center gap-2.5 bg-slate-100/60 p-1.5 rounded-xl border border-slate-200/50">
@@ -177,12 +177,12 @@ export const Habitos: React.FC = () => {
                     </button>
                     <div>
                       <h4 className="text-xs font-bold text-slate-800">{habit.name}</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-0.5">
+                      <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wider mt-0.5">
                         Meta: {habit.target} {habit.unit} • {habit.frequency}
                       </p>
                       {comment && (
                         <p className="mt-1 text-[10px] text-slate-500 italic flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3 text-slate-400" />
+                          <MessageSquare className="w-3 h-3 text-slate-600" />
                           "{comment}"
                         </p>
                       )}
@@ -224,7 +224,7 @@ export const Habitos: React.FC = () => {
         <div className="glass-card p-6 bg-white space-y-6">
           <div>
             <h3 className="text-base font-bold text-navy-800">Matriz de Cumplimiento</h3>
-            <p className="text-xs text-slate-400">Historial visual de los últimos 15 días.</p>
+            <p className="text-xs text-slate-600">Historial visual de los últimos 15 días.</p>
           </div>
 
           <div className="space-y-6 overflow-x-auto">
@@ -251,7 +251,7 @@ export const Habitos: React.FC = () => {
                           className={`w-6 h-6 rounded-md cursor-pointer transition-all border flex items-center justify-center text-[8px] font-bold ${
                             done 
                               ? 'bg-emerald-500 border-emerald-600 text-white shadow-sm' 
-                              : 'bg-slate-100 border-slate-200 text-slate-400 hover:bg-slate-200'
+                              : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
                           } ${
                             isSelected ? 'ring-2 ring-navy-800 border-navy-800 scale-105' : ''
                           }`}
@@ -266,7 +266,7 @@ export const Habitos: React.FC = () => {
             })}
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+          <div className="pt-4 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-600">
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-slate-100 border border-slate-200" /> Sin registrar</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-500 border border-emerald-600" /> Completado</span>
           </div>
