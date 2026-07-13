@@ -344,7 +344,12 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
       description: row.description,
       amount: row.amount,
       paymentMethod: row.payment_method,
-      status: row.status
+      status: row.status,
+      account: row.account || 'General',
+      isShared: row.is_shared === true || row.is_shared === 1 || String(row.is_shared) === 'true',
+      sharedAmount: Number(row.shared_amount) || 0,
+      sharedPerson: row.shared_person || '',
+      sharedPaid: row.shared_paid === true || row.shared_paid === 1 || String(row.shared_paid) === 'true'
     })));
   } catch (err) {
     console.error('Error fetching transactions:', err);
@@ -353,20 +358,28 @@ app.get('/api/transactions', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/transactions', authenticateToken, async (req, res) => {
-  const { id, date, type, category, description, amount, paymentMethod, status } = req.body;
+  const { id, date, type, category, description, amount, paymentMethod, status, account, isShared, sharedAmount, sharedPerson, sharedPaid } = req.body;
+  
+  const dbAccount = account || 'General';
+  const dbIsShared = isShared ? true : false;
+  const dbSharedAmount = Number(sharedAmount) || 0;
+  const dbSharedPerson = sharedPerson || '';
+  const dbSharedPaid = sharedPaid ? true : false;
+
   try {
     const exist = await query('SELECT id FROM transactions WHERE id = $1 AND user_id = $2', [id, req.user.id]);
     if (exist.rows.length > 0) {
       await query(
-        `UPDATE transactions SET date = $1, type = $2, category = $3, description = $4, amount = $5, payment_method = $6, status = $7 
-         WHERE id = $8 AND user_id = $9`,
-        [date, type, category, description, amount, paymentMethod, status, id, req.user.id]
+        `UPDATE transactions SET date = $1, type = $2, category = $3, description = $4, amount = $5, payment_method = $6, status = $7,
+         account = $8, is_shared = $9, shared_amount = $10, shared_person = $11, shared_paid = $12
+         WHERE id = $13 AND user_id = $14`,
+        [date, type, category, description, amount, paymentMethod, status, dbAccount, dbIsShared, dbSharedAmount, dbSharedPerson, dbSharedPaid, id, req.user.id]
       );
     } else {
       await query(
-        `INSERT INTO transactions (id, user_id, date, type, category, description, amount, payment_method, status) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [id, req.user.id, date, type, category, description, amount, paymentMethod, status]
+        `INSERT INTO transactions (id, user_id, date, type, category, description, amount, payment_method, status, account, is_shared, shared_amount, shared_person, shared_paid) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+        [id, req.user.id, date, type, category, description, amount, paymentMethod, status, dbAccount, dbIsShared, dbSharedAmount, dbSharedPerson, dbSharedPaid]
       );
     }
     res.json({ success: true });

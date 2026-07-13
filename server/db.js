@@ -139,9 +139,36 @@ export const initDb = async () => {
         description TEXT,
         amount REAL NOT NULL,
         payment_method VARCHAR(100) NOT NULL,
-        status VARCHAR(50) NOT NULL
+        status VARCHAR(50) NOT NULL,
+        account VARCHAR(100) DEFAULT 'General',
+        is_shared BOOLEAN DEFAULT FALSE,
+        shared_amount REAL DEFAULT 0,
+        shared_person VARCHAR(255),
+        shared_paid BOOLEAN DEFAULT FALSE
       )
     `);
+
+    // Upgrade existing transactions table if they don't have the new columns
+    try {
+      await query("ALTER TABLE transactions ADD COLUMN account VARCHAR(100) DEFAULT 'General'");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      const isSqlite = !process.env.DATABASE_URL;
+      const booleanType = isSqlite ? 'INTEGER DEFAULT 0' : 'BOOLEAN DEFAULT FALSE';
+      await query(`ALTER TABLE transactions ADD COLUMN is_shared ${booleanType}`);
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      await query("ALTER TABLE transactions ADD COLUMN shared_amount REAL DEFAULT 0");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      await query("ALTER TABLE transactions ADD COLUMN shared_person VARCHAR(255)");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      const isSqlite = !process.env.DATABASE_URL;
+      const booleanType = isSqlite ? 'INTEGER DEFAULT 0' : 'BOOLEAN DEFAULT FALSE';
+      await query(`ALTER TABLE transactions ADD COLUMN shared_paid ${booleanType}`);
+    } catch (e) { /* ignore if already exists */ }
+
 
     // 5. Habits Table
     await query(`

@@ -174,12 +174,14 @@ export const Dashboard: React.FC = () => {
     { name: 'Semana 4 (Hoy)', Ingresos: finStats.totalIncomes, Gastos: finStats.totalExpenses }
   ];
 
-  // Expenses by category
   const expenseCategoriesMap: Record<string, number> = {};
   transactions
     .filter(tx => tx.type === 'egreso fijo' || tx.type === 'egreso variable' || tx.type === 'gasto')
     .forEach(tx => {
-      expenseCategoriesMap[tx.category] = (expenseCategoriesMap[tx.category] || 0) + tx.amount;
+      const amount = Number(tx.amount) || 0;
+      const sharedAmount = Number(tx.sharedAmount) || 0;
+      const personalAmount = tx.isShared ? Math.max(0, amount - sharedAmount) : amount;
+      expenseCategoriesMap[tx.category] = (expenseCategoriesMap[tx.category] || 0) + personalAmount;
     });
   
   const categoryChartData = Object.entries(expenseCategoriesMap).map(([name, value]) => ({

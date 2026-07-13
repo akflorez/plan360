@@ -53,9 +53,42 @@ export const Finanzas: React.FC = () => {
   const [formAmount, setFormAmount] = useState('');
   const [formPaymentMethod, setFormPaymentMethod] = useState('Tarjeta de débito');
   const [formStatus, setFormStatus] = useState<Transaction['status']>('pagado');
+  const [formAccount, setFormAccount] = useState('General');
+  const [formIsShared, setFormIsShared] = useState(false);
+  const [formSharedPerson, setFormSharedPerson] = useState('');
+  const [formSharedAmount, setFormSharedAmount] = useState('');
+  const [formSharedPaid, setFormSharedPaid] = useState(false);
 
   // Calculations
   const finStats = calculateFinances(transactions, settings.monthlyBudget);
+
+  // 1. Calculate Account Balances
+  const customAccountsList = settings.customAccounts || ['Bancolombia', 'Nequi', 'Daviplata', 'Efectivo', 'Tarjeta de Crédito'];
+  const accountBalances = customAccountsList.map(acc => {
+    let balance = 0;
+    transactions.forEach(tx => {
+      if ((tx.account || 'General') === acc) {
+        const amount = Number(tx.amount) || 0;
+        if (tx.type === 'ingreso') {
+          balance += amount;
+        } else if (tx.type === 'egreso fijo' || tx.type === 'egreso variable' || tx.type === 'gasto' || tx.type === 'ahorro' || tx.type === 'inversion') {
+          balance -= amount;
+        }
+      }
+    });
+    return { name: acc, balance };
+  });
+
+  // 2. Calculate Shared/Split Billing outstanding balances (money friends owe me)
+  const sharedBalances: Record<string, number> = {};
+  transactions.forEach(tx => {
+    if (tx.isShared && tx.sharedPerson && !tx.sharedPaid) {
+      const person = tx.sharedPerson.trim();
+      const amount = Number(tx.sharedAmount) || 0;
+      sharedBalances[person] = (sharedBalances[person] || 0) + amount;
+    }
+  });
+  const totalReceivables = Object.values(sharedBalances).reduce((sum, val) => sum + val, 0);
 
   const openAddModal = () => {
     setEditingTx(null);
@@ -66,6 +99,11 @@ export const Finanzas: React.FC = () => {
     setFormAmount('');
     setFormPaymentMethod('Tarjeta de débito');
     setFormStatus('pagado');
+    setFormAccount(settings.customAccounts?.[0] || 'General');
+    setFormIsShared(false);
+    setFormSharedPerson('');
+    setFormSharedAmount('');
+    setFormSharedPaid(false);
     setIsModalOpen(true);
   };
 
@@ -78,6 +116,11 @@ export const Finanzas: React.FC = () => {
     setFormAmount(tx.amount.toString());
     setFormPaymentMethod(tx.paymentMethod);
     setFormStatus(tx.status);
+    setFormAccount(tx.account || 'General');
+    setFormIsShared(!!tx.isShared);
+    setFormSharedPerson(tx.sharedPerson || '');
+    setFormSharedAmount(tx.sharedAmount ? tx.sharedAmount.toString() : '');
+    setFormSharedPaid(!!tx.sharedPaid);
     setIsModalOpen(true);
   };
 
@@ -92,7 +135,12 @@ export const Finanzas: React.FC = () => {
       description: formDescription,
       amount: Number(formAmount),
       paymentMethod: formPaymentMethod,
-      status: formStatus
+      status: formStatus,
+      account: formAccount,
+      isShared: formIsShared,
+      sharedAmount: formIsShared ? (Number(formSharedAmount) || 0) : 0,
+      sharedPerson: formIsShared ? formSharedPerson.trim() : '',
+      sharedPaid: formIsShared ? formSharedPaid : false
     };
 
     if (editingTx) {
@@ -232,6 +280,54 @@ export const Finanzas: React.FC = () => {
             </div>
           </div>
 
+          {/* Custom Accounts & Split Billing Balances Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Account Balances Card List */}
+            <div className="lg:col-span-2 bg-white border border-slate-100 p-5 rounded-2xl shadow-premium space-y-3.5">
+              <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                💰 Saldos por Cuentas
+              </h5>
+              <div className="flex flex-wrap gap-4">
+                {accountBalances.map(acc => (
+                  <div key={acc.name} className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-center min-w-[130px]">
+                    <span className="text-[10px] text-slate-650 font-bold uppercase truncate">{acc.name}</span>
+                    <span className={`text-xs font-bold mt-1 ${acc.balance >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                      {formatCOP(acc.balance)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Split Billing / Receivables Card */}
+            <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-premium space-y-3.5 flex flex-col justify-between">
+              <div>
+                <h5 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                  👥 Cuentas Compartidas
+                </h5>
+                {totalReceivables > 0 ? (
+                  <div className="mt-2 space-y-2 max-h-24 overflow-y-auto pr-1">
+                    {Object.entries(sharedBalances).map(([person, amt]) => (
+                      <div key={person} className="flex justify-between items-center text-xs">
+                        <span className="text-slate-650 font-semibold">{person} te debe:</span>
+                        <span className="font-bold text-emerald-600">{formatCOP(amt)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-600 italic mt-2">No tienes saldos pendientes por cobrar a otras personas.</p>
+                )}
+              </div>
+              
+              {totalReceivables > 0 && (
+                <div className="border-t border-slate-100 pt-2 flex justify-between items-center text-xs font-bold">
+                  <span className="text-slate-700">Total por Cobrar:</span>
+                  <span className="text-emerald-600 text-sm font-black">{formatCOP(totalReceivables)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Table Operations Bar */}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-premium">
             <div className="flex flex-wrap gap-3 items-center w-full md:w-auto">
@@ -334,7 +430,25 @@ export const Finanzas: React.FC = () => {
                           </span>
                         </td>
                         <td className="py-4 px-6 font-semibold text-navy-800">{tx.category}</td>
-                        <td className="py-4 px-6 max-w-xs truncate">{tx.description || 'Sin descripción'}</td>
+                        <td className="py-4 px-6 max-w-xs">
+                          <div className="font-semibold text-slate-800 truncate">{tx.description || 'Sin descripción'}</div>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {/* Account Badge */}
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                              {tx.account || 'General'}
+                            </span>
+                            {/* Shared/Split Badge */}
+                            {tx.isShared && (
+                              <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${
+                                tx.sharedPaid
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                  : 'bg-rose-50 text-rose-600 border border-rose-100'
+                              }`}>
+                                👥 {tx.sharedPerson}: {formatCOP(tx.sharedAmount || 0)} {tx.sharedPaid ? '(Saldado)' : '(Pendiente)'}
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="py-4 px-6 text-slate-600 whitespace-nowrap">{tx.paymentMethod}</td>
                         <td className="py-4 px-6 text-center whitespace-nowrap">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
@@ -351,7 +465,12 @@ export const Finanzas: React.FC = () => {
                         <td className={`py-4 px-6 text-right font-bold text-sm whitespace-nowrap ${
                           tx.type === 'ingreso' ? 'text-emerald-600' : 'text-slate-800'
                         }`}>
-                          {tx.type === 'ingreso' ? '+' : '-'} {formatCOP(tx.amount)}
+                          <div>{tx.type === 'ingreso' ? '+' : '-'} {formatCOP(tx.amount)}</div>
+                          {tx.isShared && tx.type !== 'ingreso' && (
+                            <div className="text-[9px] text-slate-550 font-semibold mt-0.5">
+                              Mi parte: - {formatCOP(Math.max(0, tx.amount - (tx.sharedAmount || 0)))}
+                            </div>
+                          )}
                         </td>
                         <td className="py-4 px-6 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-2">
@@ -597,6 +716,20 @@ export const Finanzas: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
+                {/* Account */}
+                <div>
+                  <label className="form-label">Cuenta Relacionada</label>
+                  <select
+                    value={formAccount}
+                    onChange={(e) => setFormAccount(e.target.value)}
+                    className="form-input"
+                  >
+                    {(settings.customAccounts || ['Bancolombia', 'Nequi', 'Daviplata', 'Efectivo', 'Tarjeta de Crédito']).map(acc => (
+                      <option key={acc} value={acc}>{acc}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Payment Method */}
                 <div>
                   <label className="form-label">Medio de Pago</label>
@@ -612,7 +745,9 @@ export const Finanzas: React.FC = () => {
                     <option value="PSE">PSE</option>
                   </select>
                 </div>
+              </div>
 
+              <div className="grid grid-cols-2 gap-4">
                 {/* Status */}
                 <div>
                   <label className="form-label">Estado de Transacción</label>
@@ -626,20 +761,79 @@ export const Finanzas: React.FC = () => {
                     <option value="proyectado">Proyectado (Simulado)</option>
                   </select>
                 </div>
+
+                {/* Description */}
+                <div>
+                  <label className="form-label">Descripción</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Detalle o nombre del gasto..."
+                    value={formDescription}
+                    onChange={(e) => setFormDescription(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <label className="form-label">Descripción</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Detalle o nombre del gasto..."
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  className="form-input"
-                />
-              </div>
+              {/* Shared expense fields */}
+              {(formType !== 'ingreso') && (
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isShared"
+                      checked={formIsShared}
+                      onChange={(e) => setFormIsShared(e.target.checked)}
+                      className="rounded text-emerald-500 focus:ring-emerald-500/20"
+                    />
+                    <label htmlFor="isShared" className="text-xs font-bold text-slate-800 cursor-pointer select-none">
+                      👥 ¿Es un gasto compartido entre 2 personas?
+                    </label>
+                  </div>
+
+                  {formIsShared && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-600 uppercase tracking-wide mb-1">Nombre</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ej: Juan"
+                          value={formSharedPerson}
+                          onChange={(e) => setFormSharedPerson(e.target.value)}
+                          className="form-input py-1.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-600 uppercase tracking-wide mb-1">Cuota (COP)</label>
+                        <input
+                          type="number"
+                          required
+                          placeholder="Ej: 20000"
+                          value={formSharedAmount}
+                          onChange={(e) => setFormSharedAmount(e.target.value)}
+                          className="form-input py-1.5 font-bold"
+                        />
+                      </div>
+                      <div className="flex flex-col justify-end pb-2">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="checkbox"
+                            id="sharedPaid"
+                            checked={formSharedPaid}
+                            onChange={(e) => setFormSharedPaid(e.target.checked)}
+                            className="rounded text-emerald-500"
+                          />
+                          <label htmlFor="sharedPaid" className="text-[10px] font-bold text-slate-650 cursor-pointer select-none">
+                            ¿Saldado / Pagado?
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="pt-4 flex gap-3">
                 <button

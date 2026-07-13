@@ -66,6 +66,10 @@ export const Configuracion: React.FC = () => {
   const [categories, setCategories] = useState<string[]>(settings.customCategories || []);
   const [newCategory, setNewCategory] = useState('');
 
+  // Account operations local state
+  const [accounts, setAccounts] = useState<string[]>(settings.customAccounts || ['Bancolombia', 'Nequi', 'Daviplata', 'Efectivo', 'Tarjeta de Crédito']);
+  const [newAccount, setNewAccount] = useState('');
+
   // Handle avatar upload converting file to Base64 and compressing via Canvas
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -147,6 +151,7 @@ export const Configuracion: React.FC = () => {
       weeklyRunningGoal: Number(weeklyRunningGoal) || 20,
       monthlyBudget: Number(monthlyBudget) || 3500000,
       customCategories: categories,
+      customAccounts: accounts,
       theme: selectedTheme,
       profilePic: profilePic,
       subscriptionPlan: settings.subscriptionPlan || 'Pro',
@@ -172,6 +177,23 @@ export const Configuracion: React.FC = () => {
     }
     const updated = categories.filter(c => c !== catToRemove);
     setCategories(updated);
+  };
+
+  // Account addition
+  const handleAddAccount = () => {
+    if (!newAccount.trim() || accounts.includes(newAccount.trim())) return;
+    const updated = [...accounts, newAccount.trim()];
+    setAccounts(updated);
+    setNewAccount('');
+  };
+
+  const handleRemoveAccount = (accToRemove: string) => {
+    if (accounts.length <= 1) {
+      alert('Debes mantener al menos 1 cuenta financiera.');
+      return;
+    }
+    const updated = accounts.filter(a => a !== accToRemove);
+    setAccounts(updated);
   };
 
   // Mock Subscription activation
@@ -812,48 +834,112 @@ export const Configuracion: React.FC = () => {
 
       {activeConfigTab === 'data' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-left">
-          {/* Custom Categories Card */}
-          <div className="lg:col-span-2 glass-card p-6 bg-white space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Categorías de Finanzas</h3>
-            </div>
+          {/* Custom Categories and Accounts stack */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Custom Categories Card */}
+            <div className="glass-card p-6 bg-white space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Categorías de Finanzas</h3>
+              </div>
 
-            {/* Add Category Form */}
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Nueva categoría..."
-                value={newCategory}
-                onChange={(e) => setNewCategory(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-350 text-xs"
-              />
-              <button
-                type="button"
-                onClick={handleAddCategory}
-                className={`p-2 text-white rounded-xl hover:brightness-95 transition-colors cursor-pointer ${styles.userInitialsBg}`}
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Categories pills container */}
-            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
-              {categories.map(cat => (
-                <div 
-                  key={cat}
-                  className="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-250 text-[10px] font-bold text-slate-600 flex items-center gap-1.5"
+              {/* Add Category Form */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Nueva categoría..."
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-350 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCategory}
+                  className={`p-2 text-white rounded-xl hover:brightness-95 transition-colors cursor-pointer ${styles.userInitialsBg}`}
                 >
-                  <span>{cat}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveCategory(cat)}
-                    className="text-slate-600 hover:text-rose-500 transition-colors cursor-pointer"
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Categories pills container */}
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
+                {categories.map(cat => (
+                  <div 
+                    key={cat}
+                    className="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-255 text-[10px] font-bold text-slate-650 flex items-center gap-1.5"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
+                    <span>{cat}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCategory(cat)}
+                      className="text-slate-650 hover:text-rose-500 transition-colors cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
+
+            {/* Custom Accounts Card */}
+            <div className="glass-card p-6 bg-white space-y-4">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Cuentas Financieras (Bancos, Nequi, etc.)</h3>
+              </div>
+
+              {/* Add Account Form */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Nueva cuenta (ej: Nequi, Daviplata)..."
+                  value={newAccount}
+                  onChange={(e) => setNewAccount(e.target.value)}
+                  className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-350 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddAccount}
+                  className={`p-2 text-white rounded-xl hover:brightness-95 transition-colors cursor-pointer ${styles.userInitialsBg}`}
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Accounts pills container */}
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
+                {accounts.map(acc => (
+                  <div 
+                    key={acc}
+                    className="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-255 text-[10px] font-bold text-slate-650 flex items-center gap-1.5"
+                  >
+                    <span>{acc}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAccount(acc)}
+                      className="text-slate-650 hover:text-rose-500 transition-colors cursor-pointer"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Save Button for Categories and Accounts */}
+            <button
+              type="button"
+              onClick={() => {
+                updateSettings({
+                  ...settings,
+                  customCategories: categories,
+                  customAccounts: accounts
+                });
+                alert('Categorías y cuentas financieras guardadas con éxito.');
+              }}
+              className="w-full btn-primary text-xs flex items-center justify-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>Guardar Categorías y Cuentas</span>
+            </button>
           </div>
 
           {/* Backup Restore Card */}

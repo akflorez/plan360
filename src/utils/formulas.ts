@@ -27,19 +27,21 @@ export const calculateFinances = (
   const categoryTotals: Record<string, number> = {};
 
   transactions.forEach(tx => {
-    // Only calculate for the current month/year or general totals (we assume all loaded transactions are for the active month or filtered context)
     const amount = Number(tx.amount) || 0;
+    const sharedAmount = Number(tx.sharedAmount) || 0;
+    const personalAmount = tx.isShared ? Math.max(0, amount - sharedAmount) : amount;
+
     if (tx.type === 'ingreso') {
       totalIncomes += amount;
     } else if (tx.type === 'egreso fijo') {
-      fixedExpenses += amount;
-      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + amount;
+      fixedExpenses += personalAmount;
+      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + personalAmount;
     } else if (tx.type === 'egreso variable' || tx.type === 'gasto') {
-      variableExpenses += amount;
-      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + amount;
+      variableExpenses += personalAmount;
+      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + personalAmount;
     } else if (tx.type === 'ahorro' || tx.type === 'inversion') {
-      savings += amount;
-      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + amount;
+      savings += personalAmount;
+      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + personalAmount;
     }
   });
 
