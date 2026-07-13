@@ -102,15 +102,26 @@ export const Finanzas: React.FC = () => {
     return { name: acc, balance };
   });
 
-  // 2. Calculate Shared/Split Billing outstanding balances (money friends owe me)
+  // 2. Calculate Combined Outstanding Balances (money friends owe me)
   const sharedBalances: Record<string, number> = {};
+  
+  // Standalone debts to collect
+  debts.forEach(d => {
+    if (d.type === 'cobrar' && d.status === 'pendiente') {
+      const person = d.person.trim();
+      sharedBalances[person] = (sharedBalances[person] || 0) + d.amount;
+    }
+  });
+
+  // Transaction-level shared portions
   transactions.forEach(tx => {
-    if (tx.isShared && tx.sharedPerson && !tx.sharedPaid) {
+    if (tx.isShared && tx.sharedPerson && !tx.sharedPaid && tx.type !== 'ingreso') {
       const person = tx.sharedPerson.trim();
       const amount = Number(tx.sharedAmount) || 0;
       sharedBalances[person] = (sharedBalances[person] || 0) + amount;
     }
   });
+
   const totalReceivables = Object.values(sharedBalances).reduce((sum, val) => sum + val, 0);
 
   const openAddModal = () => {
@@ -253,6 +264,27 @@ export const Finanzas: React.FC = () => {
     }
   };
 
+  const handleSettleTransactionDebt = (tx: Transaction) => {
+    const updatedTx: Transaction = {
+      ...tx,
+      sharedPaid: true
+    };
+    updateTransaction(updatedTx);
+    
+    if (confirm(`¿Deseas registrar este cobro de ${tx.sharedPerson} por ${formatCOP(tx.sharedAmount || 0)} como un ingreso real en tu libro de movimientos?`)) {
+      addTransaction({
+        date: new Date().toISOString().split('T')[0],
+        type: 'ingreso',
+        category: 'Ingreso extra',
+        description: `Cobro compartido - ${tx.sharedPerson} (${tx.description})`,
+        amount: tx.sharedAmount || 0,
+        paymentMethod: 'Efectivo',
+        status: 'pagado',
+        account: settings.customAccounts?.[0] || 'General'
+      });
+    }
+  };
+
   // Filter Logic
   const filteredTransactions = transactions.filter(tx => {
     const matchesType = filterType === 'all' || tx.type === filterType;
@@ -263,6 +295,33 @@ export const Finanzas: React.FC = () => {
       tx.category.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesType && matchesCategory && matchesStatus && matchesSearch;
   });
+
+  const combinedReceivables = [
+    // Standalone debts
+    ...debts.filter(d => d.type === 'cobrar').map(d => ({
+      id: d.id,
+      isTransaction: false,
+      person: d.person,
+      description: d.description,
+      amount: d.amount,
+      dueDate: d.dueDate,
+      status: d.status,
+      createdAt: d.createdAt,
+      original: d
+    })),
+    // Shared transactions (debts others owe me)
+    ...transactions.filter(tx => tx.isShared && tx.type !== 'ingreso').map(tx => ({
+      id: tx.id,
+      isTransaction: true,
+      person: tx.sharedPerson || 'Desconocido',
+      description: `Gasto: ${tx.category} (${tx.description})`,
+      amount: tx.sharedAmount || 0,
+      dueDate: tx.date,
+      status: tx.sharedPaid ? ('pagado' as const) : ('pendiente' as const),
+      createdAt: tx.date,
+      original: tx
+    }))
+  ];
 
   const formatCOP = (num: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -758,7 +817,7 @@ export const Finanzas: React.FC = () => {
               <div className="text-left">
                 <p className="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Cuentas por Cobrar (Pendiente)</p>
                 <h4 className="text-lg font-black text-emerald-600 mt-1">
-                  {formatCOP(debts.filter(d => d.type === 'cobrar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0))}
+                  {formatCOP(combinedReceivables.filter(r => r.status === 'pendiente').reduce((sum, r) => sum + r.amount, 0))}
                 </h4>
               </div>
             </div>
@@ -778,13 +837,13 @@ export const Finanzas: React.FC = () => {
 
             {/* Net balance */}
             {(() => {
-              const toCollect = debts.filter(d => d.type === 'cobrar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0);
+              const toCollect = combinedReceivables.filter(r => r.status === 'pendiente').reduce((sum, r) => sum + r.amount, 0);
               const toPay = debts.filter(d => d.type === 'pagar' && d.status === 'pendiente').reduce((sum, d) => sum + d.amount, 0);
               const netBalance = toCollect - toPay;
               const isPositive = netBalance >= 0;
               return (
                 <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-premium flex items-center gap-4">
-                  <div className={`p-3 rounded-xl ${isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-50'}`}>
+                  <div className={`p-3 rounded-xl ${isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
                     <DollarSign className="w-6 h-6" />
                   </div>
                   <div className="text-left">
@@ -805,7 +864,7 @@ export const Finanzas: React.FC = () => {
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div>
                   <h3 className="text-sm font-bold text-navy-800 uppercase tracking-wider">Cuentas por Cobrar (A mi favor)</h3>
-                  <p className="text-[10px] text-slate-600">Dinero que has prestado o tienes pendiente de cobro.</p>
+                  <p className="text-[10px] text-slate-600">Dinero que has prestado, dividido o tienes pendiente de cobro.</p>
                 </div>
                 <button
                   onClick={() => openAddDebtModal('cobrar')}
@@ -818,16 +877,16 @@ export const Finanzas: React.FC = () => {
 
               {/* List */}
               <div className="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
-                {debts.filter(d => d.type === 'cobrar').length === 0 ? (
+                {combinedReceivables.length === 0 ? (
                   <p className="text-xs text-slate-600 italic py-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
                     No tienes cuentas por cobrar registradas.
                   </p>
                 ) : (
-                  debts.filter(d => d.type === 'cobrar').map(debt => (
+                  combinedReceivables.map(item => (
                     <div
-                      key={debt.id}
+                      key={`${item.isTransaction ? 'tx' : 'debt'}-${item.id}`}
                       className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
-                        debt.status === 'pagado'
+                        item.status === 'pagado'
                           ? 'bg-slate-50/55 border-slate-200 opacity-70'
                           : 'bg-white border-slate-150 shadow-sm hover:shadow-md'
                       }`}
@@ -835,33 +894,36 @@ export const Finanzas: React.FC = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-navy-800">{debt.person}</span>
+                            <span className="text-xs font-black text-navy-800">{item.person}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${
-                              debt.status === 'pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800 animate-pulse-soft'
+                              item.status === 'pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800 animate-pulse-soft'
                             }`}>
-                              {debt.status}
+                              {item.status}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-slate-105 text-slate-700">
+                              {item.isTransaction ? 'Movimiento' : 'Deuda'}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-650 mt-1 font-semibold">{debt.description || 'Sin concepto'}</p>
-                          {debt.dueDate && (
+                          <p className="text-xs text-slate-650 mt-1 font-semibold">{item.description || 'Sin concepto'}</p>
+                          {item.dueDate && (
                             <p className="text-[9px] text-slate-600 mt-0.5 flex items-center gap-1 font-bold">
                               <Clock className="w-3 h-3 text-slate-600" />
-                              Vence: {debt.dueDate}
-                              {debt.status === 'pendiente' && new Date(debt.dueDate) < new Date() && (
+                              Fecha: {item.dueDate}
+                              {item.status === 'pendiente' && new Date(item.dueDate) < new Date() && (
                                 <span className="text-rose-600 font-extrabold text-[8px] uppercase bg-rose-50 border border-rose-200 px-1 py-0.2 rounded">Vencido</span>
                               )}
                             </p>
                           )}
                         </div>
-                        <span className="text-sm font-black text-emerald-600">{formatCOP(debt.amount)}</span>
+                        <span className="text-sm font-black text-emerald-600">{formatCOP(item.amount)}</span>
                       </div>
 
                       <div className="flex justify-between items-center border-t border-slate-100 pt-2.5">
-                        <span className="text-[8px] font-bold text-slate-600">Creado: {debt.createdAt}</span>
+                        <span className="text-[8px] font-bold text-slate-600">Creado: {item.createdAt}</span>
                         <div className="flex gap-2">
-                          {debt.status === 'pendiente' && (
+                          {item.status === 'pendiente' && (
                             <button
-                              onClick={() => handleSettleDebt(debt)}
+                              onClick={() => item.isTransaction ? handleSettleTransactionDebt(item.original as Transaction) : handleSettleDebt(item.original as Debt)}
                               className="p-1 px-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-[9px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
                               title="Marcar como cobrado y saldado"
                             >
@@ -870,14 +932,14 @@ export const Finanzas: React.FC = () => {
                             </button>
                           )}
                           <button
-                            onClick={() => openEditDebtModal(debt)}
+                            onClick={() => item.isTransaction ? openEditModal(item.original as Transaction) : openEditDebtModal(item.original as Debt)}
                             className="p-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[9px] font-bold cursor-pointer transition-colors"
                             title="Editar concepto o monto"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDeleteDebt(debt.id)}
+                            onClick={() => item.isTransaction ? handleDelete(item.id) : handleDeleteDebt(item.id)}
                             className="p-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-[9px] font-bold cursor-pointer transition-colors"
                             title="Eliminar registro"
                           >
@@ -1174,7 +1236,14 @@ export const Finanzas: React.FC = () => {
                     required
                     placeholder="Monto..."
                     value={formAmount}
-                    onChange={(e) => setFormAmount(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const oldAmount = formAmount;
+                      setFormAmount(val);
+                      if (formIsShared && formSharedAmount === oldAmount) {
+                        setFormSharedAmount(val);
+                      }
+                    }}
                     className="form-input font-bold"
                   />
                 </div>
@@ -1249,50 +1318,90 @@ export const Finanzas: React.FC = () => {
                       type="checkbox"
                       id="isShared"
                       checked={formIsShared}
-                      onChange={(e) => setFormIsShared(e.target.checked)}
+                      onChange={(e) => {
+                        setFormIsShared(e.target.checked);
+                        if (!e.target.checked) {
+                          setFormSharedAmount('');
+                        } else {
+                          // By default, set it to 50%
+                          const half = Math.round((Number(formAmount) || 0) / 2);
+                          setFormSharedAmount(half.toString());
+                        }
+                      }}
                       className="rounded text-emerald-500 focus:ring-emerald-500/20"
                     />
                     <label htmlFor="isShared" className="text-xs font-bold text-slate-800 cursor-pointer select-none">
-                      👥 ¿Es un gasto compartido entre 2 personas?
+                      👥 ¿Es un gasto compartido o préstamo (por cobrar)?
                     </label>
                   </div>
 
                   {formIsShared && (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                      <div>
-                        <label className="block text-[9px] font-bold text-slate-600 uppercase tracking-wide mb-1">Nombre</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Ej: Juan"
-                          value={formSharedPerson}
-                          onChange={(e) => setFormSharedPerson(e.target.value)}
-                          className="form-input py-1.5"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-bold text-slate-600 uppercase tracking-wide mb-1">Cuota (COP)</label>
-                        <input
-                          type="number"
-                          required
-                          placeholder="Ej: 20000"
-                          value={formSharedAmount}
-                          onChange={(e) => setFormSharedAmount(e.target.value)}
-                          className="form-input py-1.5 font-bold"
-                        />
-                      </div>
-                      <div className="flex flex-col justify-end pb-2">
-                        <div className="flex items-center gap-1.5">
+                    <div className="space-y-3 pt-1">
+                      {/* Selection: Split vs Full Loan */}
+                      <div className="flex gap-4 text-[10px] font-bold text-slate-700">
+                        <label className="flex items-center gap-1.5 cursor-pointer">
                           <input
-                            type="checkbox"
-                            id="sharedPaid"
-                            checked={formSharedPaid}
-                            onChange={(e) => setFormSharedPaid(e.target.checked)}
-                            className="rounded text-emerald-500"
+                            type="radio"
+                            name="sharedType"
+                            checked={formSharedAmount !== formAmount || formAmount === ''}
+                            onChange={() => {
+                              const half = Math.round((Number(formAmount) || 0) / 2);
+                              setFormSharedAmount(half.toString());
+                            }}
+                            className="text-emerald-500 focus:ring-emerald-500/20"
                           />
-                          <label htmlFor="sharedPaid" className="text-[10px] font-bold text-slate-650 cursor-pointer select-none">
-                            ¿Saldado / Pagado?
-                          </label>
+                          <span>Dividir cuenta (Gasto compartido)</span>
+                        </label>
+                        <label className="flex items-center gap-1.5 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="sharedType"
+                            checked={formSharedAmount === formAmount && formAmount !== ''}
+                            onChange={() => {
+                              setFormSharedAmount(formAmount);
+                            }}
+                            className="text-emerald-500 focus:ring-emerald-500/20"
+                          />
+                          <span>Prestar dinero (100% por cobrar)</span>
+                        </label>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-600 uppercase tracking-wide mb-1">Nombre</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="Ej: Juan"
+                            value={formSharedPerson}
+                            onChange={(e) => setFormSharedPerson(e.target.value)}
+                            className="form-input py-1.5"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[9px] font-bold text-slate-600 uppercase tracking-wide mb-1">Cuota por Cobrar (COP)</label>
+                          <input
+                            type="number"
+                            required
+                            placeholder="Ej: 20000"
+                            value={formSharedAmount}
+                            onChange={(e) => setFormSharedAmount(e.target.value)}
+                            className="form-input py-1.5 font-bold animate-pulse-soft-[0.1s]"
+                          />
+                        </div>
+                        <div className="flex flex-col justify-end pb-2">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="checkbox"
+                              id="sharedPaid"
+                              checked={formSharedPaid}
+                              onChange={(e) => setFormSharedPaid(e.target.checked)}
+                              className="rounded text-emerald-500"
+                            />
+                            <label htmlFor="sharedPaid" className="text-[10px] font-bold text-slate-650 cursor-pointer select-none">
+                              ¿Saldado / Pagado?
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
