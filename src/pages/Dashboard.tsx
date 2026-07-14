@@ -50,6 +50,28 @@ export const Dashboard: React.FC = () => {
   const theme = settings.theme || 'femenino';
   const styles = getThemeStyles(theme);
 
+  const [filterMonth, setFilterMonth] = useState<string>(() => {
+    return new Date().toLocaleDateString('sv-SE').substring(0, 7);
+  });
+
+  // Month Filtering Helper Calculations
+  const currentMonthKey = new Date().toLocaleDateString('sv-SE').substring(0, 7);
+  const availableMonths = Array.from(new Set(
+    transactions.map(tx => tx.date.substring(0, 7))
+  )).filter(Boolean);
+  
+  if (!availableMonths.includes(currentMonthKey)) {
+    availableMonths.push(currentMonthKey);
+  }
+  availableMonths.sort().reverse();
+
+  const formatMonthName = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+    return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+  };
+
   // Custom daily focus state (saved in LocalStorage or initial defaults)
   const [focusTasks, setFocusTasks] = useState<{ id: string; text: string; done: boolean }[]>(() => {
     const stored = localStorage.getItem('kari_360_daily_focus');
@@ -148,8 +170,12 @@ export const Dashboard: React.FC = () => {
   };
 
   // Perform Calculations
-  const finStats = calculateFinances(transactions, settings.monthlyBudget);
-  const crmStats = calculateCRMStats(prospects, transactions, settings.extraIncomeGoal);
+  const monthFilteredTransactions = filterMonth === 'all'
+    ? transactions
+    : transactions.filter(tx => tx.date.substring(0, 7) === filterMonth);
+
+  const finStats = calculateFinances(monthFilteredTransactions, settings.monthlyBudget);
+  const crmStats = calculateCRMStats(prospects, monthFilteredTransactions, settings.extraIncomeGoal);
 
   // Roadmap project compliance
   const totalRoadmapGoals = roadmaps.reduce((sum, r) => sum + r.objectives.length, 0);
@@ -175,7 +201,7 @@ export const Dashboard: React.FC = () => {
   ];
 
   const expenseCategoriesMap: Record<string, number> = {};
-  transactions
+  monthFilteredTransactions
     .filter(tx => tx.type === 'egreso fijo' || tx.type === 'egreso variable' || tx.type === 'gasto')
     .forEach(tx => {
       const amount = Number(tx.amount) || 0;
@@ -211,6 +237,31 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Top Header Row with Month Selector */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-premium">
+        <div>
+          <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider">Tablero General</h2>
+          <p className="text-[10px] text-slate-650">Resumen y evolución de tus metas financieras y de hábitos.</p>
+        </div>
+        
+        {/* Month Selector */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-650">Período:</span>
+          <select
+            value={filterMonth}
+            onChange={(e) => setFilterMonth(e.target.value)}
+            className="px-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-navy-800/10 focus:border-navy-800 cursor-pointer"
+          >
+            <option value="all">📅 Todos los meses</option>
+            {availableMonths.map(mKey => (
+              <option key={mKey} value={mKey}>
+                {formatMonthName(mKey)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Welcome & Motivational Banner */}
       <div className={`relative p-6 md:p-8 rounded-3xl overflow-hidden text-white shadow-xl ${bannerBg}`}>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
