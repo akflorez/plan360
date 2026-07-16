@@ -95,9 +95,31 @@ export const initDb = async () => {
         email VARCHAR(100) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         settings_json TEXT,
+        stripe_customer_id VARCHAR(255),
+        stripe_subscription_id VARCHAR(255),
+        subscription_plan VARCHAR(50) DEFAULT 'Gratuito',
+        subscription_status VARCHAR(50) DEFAULT 'inactivo',
+        subscription_expires_at VARCHAR(50),
         created_at TIMESTAMP ${defaultTimestamp}
       )
     `);
+
+    // Upgrade existing users table for Stripe / Subscription columns if they don't exist
+    try {
+      await query("ALTER TABLE users ADD COLUMN stripe_customer_id VARCHAR(255)");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      await query("ALTER TABLE users ADD COLUMN stripe_subscription_id VARCHAR(255)");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      await query("ALTER TABLE users ADD COLUMN subscription_plan VARCHAR(50) DEFAULT 'Gratuito'");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      await query("ALTER TABLE users ADD COLUMN subscription_status VARCHAR(50) DEFAULT 'inactivo'");
+    } catch (e) { /* ignore if already exists */ }
+    try {
+      await query("ALTER TABLE users ADD COLUMN subscription_expires_at VARCHAR(50)");
+    } catch (e) { /* ignore if already exists */ }
 
     // 2. Focus Plans Table
     await query(`

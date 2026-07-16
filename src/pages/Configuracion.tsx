@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { getThemeStyles } from '../utils/theme';
 import { 
@@ -31,9 +31,23 @@ import {
 } from 'lucide-react';
 
 export const Configuracion: React.FC = () => {
-  const { settings, updateSettings, resetAllData } = useApp();
+  const { settings, updateSettings, resetAllData, token } = useApp();
   const theme = settings.theme || 'femenino';
   const styles = getThemeStyles(theme);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const sessionId = params.get('session_id');
+
+    if (status === 'success' && sessionId) {
+      alert('🎉 ¡Muchas gracias! Tu suscripción se ha procesado exitosamente en Stripe. En unos segundos tu plan se actualizará en pantalla.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (status === 'cancel') {
+      alert('❌ El proceso de suscripción fue cancelado.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Configuration Tabs: 'profile' | 'subscription' | 'data'
   const [activeConfigTab, setActiveConfigTab] = useState<'profile' | 'subscription' | 'data'>('profile');
@@ -196,20 +210,45 @@ export const Configuracion: React.FC = () => {
     setAccounts(updated);
   };
 
-  // Mock Subscription activation
-  const handleActivatePlan = (plan: 'Gratuito' | 'Pro' | 'Premium') => {
-    const renewalDate = new Date();
-    renewalDate.setMonth(renewalDate.getMonth() + 1); // 1 month renewal
-    const formattedRenewal = renewalDate.toISOString().split('T')[0];
+  // Stripe Billing Session Activation
+  const handleActivatePlan = async (plan: 'Gratuito' | 'Pro' | 'Premium') => {
+    if (plan === 'Gratuito') {
+      updateSettings({
+        ...settings,
+        subscriptionPlan: 'Gratuito',
+        subscriptionRenewal: 'Ilimitado',
+        subscriptionStatus: 'Activa'
+      });
+      alert('¡Suscripción actualizada correctamente al plan GRATUITO!');
+      return;
+    }
 
-    updateSettings({
-      ...settings,
-      subscriptionPlan: plan,
-      subscriptionRenewal: plan === 'Gratuito' ? 'Ilimitado' : formattedRenewal,
-      subscriptionStatus: 'Activa'
-    });
+    try {
+      const response = await fetch('/api/billing/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ plan })
+      });
 
-    alert(`¡Suscripción actualizada correctamente al plan ${plan.toUpperCase()}!`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Error al iniciar el pago.');
+      }
+
+      const data = await response.json();
+      if (data.url) {
+        // Redirigir a Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        alert('No se pudo generar la sesión de pago.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(`Error al procesar la suscripción: ${err.message}`);
+    }
   };
 
   // Export JSON Backup

@@ -5,6 +5,9 @@ import jwt from 'jsonwebtoken';
 import { fileURLToPath } from 'url';
 import pathModule from 'path';
 import { query, initDb } from './db.js';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
+import Stripe from 'stripe';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = pathModule.dirname(__filename);
@@ -13,8 +16,103 @@ const app = express();
 const PORT = process.env.PORT || 5180;
 const JWT_SECRET = process.env.JWT_SECRET || 'plan360_secret_key';
 
-// Middlewares
+// Initialize Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_placeholder_key_if_not_provided');
+
+// Security Middlewares
+app.use(helmet({
+  contentSecurityPolicy: false,
+}));
 app.use(cors());
+
+// Rate Limiters
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  message: { error: 'Demasiadas peticiones desde esta IP. Por favor intenta de nuevo más tarde.' }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: { error: 'Demasiados intentos de acceso. Por favor intenta de nuevo en 15 minutos.' }
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// 1. Stripe Webhook (needs raw body, so define before express.json())
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  let event;
+
+  try {
+    if (endpointSecret && sig) {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } else {
+      event = JSON.parse(req.body);
+    }
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const userId = session.metadata.userId;
+        const plan = session.metadata.plan;
+        const subscriptionId = session.subscription;
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString().split('T')[0];
+
+        await query(
+          'UPDATE users SET stripe_subscription_id = $1, subscription_plan = $2, subscription_status = $3, subscription_expires_at = $4 WHERE id = $5',
+          [subscriptionId, plan, 'activo', expiresAt, userId]
+        );
+        console.log(`User ${userId} successfully subscribed to plan ${plan}`);
+        break;
+      }
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object;
+        const subscriptionId = subscription.id;
+        const status = subscription.status;
+        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString().split('T')[0];
+
+        await query(
+          'UPDATE users SET subscription_status = $1, subscription_expires_at = $2 WHERE stripe_subscription_id = $3',
+          [status === 'active' ? 'activo' : status, expiresAt, subscriptionId]
+        );
+        console.log(`Subscription ${subscriptionId} status updated to ${status}`);
+        break;
+      }
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object;
+        const subscriptionId = subscription.id;
+
+        await query(
+          'UPDATE users SET subscription_plan = $1, subscription_status = $2, subscription_expires_at = $3 WHERE stripe_subscription_id = $4',
+          ['Gratuito', 'inactivo', null, subscriptionId]
+        );
+        console.log(`Subscription ${subscriptionId} cancelled/deleted.`);
+        break;
+      }
+      default:
+        console.log(`Unhandled webhook event: ${event.type}`);
+    }
+  } catch (err) {
+    console.error('Error processing webhook database update:', err);
+    return res.status(500).send('Database update failed');
+  }
+
+  res.json({ received: true });
+});
+
+// 2. express.json() for all subsequent routes
 app.use(express.json());
 
 // Initialize Database
@@ -181,13 +279,18 @@ app.post('/api/auth/login', async (req, res) => {
       expiresIn: '30d'
     });
 
+    const settings = user.settings_json ? JSON.parse(user.settings_json) : {};
+    settings.subscriptionPlan = user.subscription_plan || 'Gratuito';
+    settings.subscriptionStatus = user.subscription_status === 'activo' ? 'Activa' : (user.subscription_status === 'inactivo' ? 'Inactiva' : user.subscription_status || 'Inactiva');
+    settings.subscriptionRenewal = user.subscription_expires_at || 'Ilimitado';
+
     res.json({
       token,
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
-        settings: user.settings_json ? JSON.parse(user.settings_json) : null
+        settings
       }
     });
 
@@ -200,16 +303,24 @@ app.post('/api/auth/login', async (req, res) => {
 // Get User Profile & Full State
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
-    const result = await query('SELECT id, username, email, settings_json FROM users WHERE id = $1', [req.user.id]);
+    const result = await query(
+      'SELECT id, username, email, settings_json, subscription_plan, subscription_status, subscription_expires_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado.' });
     }
     const user = result.rows[0];
+    const settings = user.settings_json ? JSON.parse(user.settings_json) : {};
+    settings.subscriptionPlan = user.subscription_plan || 'Gratuito';
+    settings.subscriptionStatus = user.subscription_status === 'activo' ? 'Activa' : (user.subscription_status === 'inactivo' ? 'Inactiva' : user.subscription_status || 'Inactiva');
+    settings.subscriptionRenewal = user.subscription_expires_at || 'Ilimitado';
+
     res.json({
       id: user.id,
       username: user.username,
       email: user.email,
-      settings: user.settings_json ? JSON.parse(user.settings_json) : null
+      settings
     });
   } catch (err) {
     console.error('Error fetching profile:', err);
@@ -220,11 +331,25 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 // --- SETTINGS ---
 app.post('/api/settings', authenticateToken, async (req, res) => {
   try {
+    const userResult = await query(
+      'SELECT subscription_plan, subscription_status, subscription_expires_at FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+    const user = userResult.rows[0];
+
+    const newSettings = req.body;
+    newSettings.subscriptionPlan = user.subscription_plan || 'Gratuito';
+    newSettings.subscriptionStatus = user.subscription_status === 'activo' ? 'Activa' : (user.subscription_status === 'inactivo' ? 'Inactiva' : user.subscription_status || 'Inactiva');
+    newSettings.subscriptionRenewal = user.subscription_expires_at || 'Ilimitado';
+
     await query(
       'UPDATE users SET settings_json = $1 WHERE id = $2',
-      [JSON.stringify(req.body), req.user.id]
+      [JSON.stringify(newSettings), req.user.id]
     );
-    res.json({ success: true, settings: req.body });
+    res.json({ success: true, settings: newSettings });
   } catch (err) {
     console.error('Error updating settings:', err);
     res.status(500).json({ error: 'Error al actualizar configuraciones.' });
@@ -698,6 +823,66 @@ app.delete('/api/debts/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error('Error deleting debt:', err);
     res.status(500).json({ error: 'Error al eliminar deuda/cuenta.' });
+  }
+});
+
+// --- BILLING / SUBSCRIPTIONS ---
+app.post('/api/billing/create-checkout-session', authenticateToken, async (req, res) => {
+  const { plan } = req.body;
+  if (!['Pro', 'Premium'].includes(plan)) {
+    return res.status(400).json({ error: 'Plan inválido.' });
+  }
+
+  const priceAmount = plan === 'Pro' ? 20000 : 40000; // $20.000 COP vs $40.000 COP
+  const currency = 'cop';
+
+  try {
+    const userResult = await query('SELECT email, stripe_customer_id FROM users WHERE id = $1', [req.user.id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+    const user = userResult.rows[0];
+
+    let customerId = user.stripe_customer_id;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { userId: req.user.id }
+      });
+      customerId = customer.id;
+      await query('UPDATE users SET stripe_customer_id = $1 WHERE id = $2', [customerId, req.user.id]);
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: currency,
+            product_data: {
+              name: `Suscripción PLAN 360 - Plan ${plan}`,
+              description: plan === 'Pro' ? 'Acceso Pro a metas y calendarios' : 'Acceso Premium Completo con Cuentas Financieras Ilimitadas',
+            },
+            unit_amount: priceAmount * 100, // Convert to cents for Stripe (2-decimal currency)
+            recurring: { interval: 'month' }
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/configuracion?session_id={CHECKOUT_SESSION_ID}&status=success`,
+      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/configuracion?status=cancel`,
+      metadata: {
+        userId: req.user.id,
+        plan: plan
+      }
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Error creating checkout session:', err);
+    res.status(500).json({ error: 'Error al procesar el pago con Stripe.' });
   }
 });
 
